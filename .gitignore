@@ -112,3 +112,10 @@ UpgradeLog*.XML
 *.nupkg
 *.il
 *.res
+/.vs/
+/Tracer.Serilog/NuGet/lib/net40/Tracer.Serilog.dll
+/Tracer.NLog4Net/NuGet/lib/net40/Tracer.NLog4Net.dll
+/Tracer.NLog/NuGet/lib/net40/Tracer.NLog.dll
+/Tracer.Log4net/NuGet/lib/net40/Tracer.Log4Net.dll
+/Tracer.Fody/NuGet/Tracer.Fody.dll
+/Tools/Tracer.Fody.dll

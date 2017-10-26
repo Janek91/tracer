@@ -4,11 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         Title="MainWindow"
-        Width="525"
-        Height="350"
+        MinWidth="525"
+        MinHeight="350"
+        WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
-    <StackPanel>
-        <ListBox ItemsSource="{Binding ReactiveTracer}" />
-        <Button Click="ExecuteMethod">Execute Method</Button>
-    </StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button Grid.Row="0" Click="ExecuteMethod">Execute Method</Button>
+        <ListBox Grid.Row="1" ItemsSource="{Binding ReactiveTracer}" />
+    </Grid>
 </Window>
