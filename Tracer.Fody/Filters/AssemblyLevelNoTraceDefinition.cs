@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 namespace Tracer.Fody.Filters
 {
@@ -12,7 +8,7 @@ namespace Tracer.Fody.Filters
     internal class AssemblyLevelNoTraceDefinition : AssemblyLevelTraceDefinition
     {
         internal AssemblyLevelNoTraceDefinition(NamespaceScope ns) : base(ns)
-        {}
+        { }
 
         internal static AssemblyLevelNoTraceDefinition ParseFromConfig(XElement element)
         {
@@ -28,13 +24,13 @@ namespace Tracer.Fody.Filters
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((AssemblyLevelNoTraceDefinition) obj);
+            if (obj.GetType() != GetType()) return false;
+            return Equals((AssemblyLevelNoTraceDefinition)obj);
         }
 
         public override int GetHashCode()
         {
-            return  NamespaceScope.GetHashCode();
+            return NamespaceScope.GetHashCode();
         }
 
         internal override bool ShouldTrace()

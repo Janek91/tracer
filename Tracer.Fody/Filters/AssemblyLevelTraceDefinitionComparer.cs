@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Tracer.Fody.Filters
 {
@@ -15,14 +12,14 @@ namespace Tracer.Fody.Filters
         public int Compare(AssemblyLevelTraceDefinition x, AssemblyLevelTraceDefinition y)
         {             //x<y -> -1, x==y ->0, x>y ->1
 
-            var nsComp = x.NamespaceScope.CompareTo(y.NamespaceScope);
+            int nsComp = x.NamespaceScope.CompareTo(y.NamespaceScope);
             if (nsComp != 0) return nsComp;
             if (x is AssemblyLevelNoTraceDefinition) return -1;
             if (y is AssemblyLevelNoTraceDefinition) return 1;
 
             //both x and y are TraceOn defs
-            var xClassLevel = (int)((AssemblyLevelTraceOnDefinition)x).TargetClass;
-            var yClassLevel = (int)((AssemblyLevelTraceOnDefinition)y).TargetClass;
+            int xClassLevel = (int)((AssemblyLevelTraceOnDefinition)x).TargetClass;
+            int yClassLevel = (int)((AssemblyLevelTraceOnDefinition)y).TargetClass;
 
             if (xClassLevel != yClassLevel)
             {

@@ -5,9 +5,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Parsing;
@@ -30,7 +28,7 @@ namespace Tracer.Serilog.Adapters
 
         static LoggerAdapter()
         {
-            var parser = new MessageTemplateParser();
+            MessageTemplateParser parser = new MessageTemplateParser();
             _traceEnterTemplate = parser.Parse("Entered into {MethodName} ({CallingParameters}).");
             _traceLeaveTemplate = parser.Parse("Returned from {MethodName} ({ReturnValue}). Time taken: {TimeTaken:0.00} ms.");
         }
@@ -42,7 +40,7 @@ namespace Tracer.Serilog.Adapters
 
             _assembliesParsedForDestructureTypeAttribute.GetOrAdd(type.Assembly, SeekForDestructureTypeAttribute);
 
-            var config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
+            string config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
 
             if ((config != null) && config.Equals("true", StringComparison.OrdinalIgnoreCase))
                 _renderParameterMethod = GetSafeRenderedFormat;
@@ -291,7 +289,7 @@ namespace Tracer.Serilog.Adapters
             IEnumerable<LogEventProperty> boundProperties;
             _logger.BindMessageTemplate(messageTemplate, propertyValues, out parsedTemplate, out boundProperties);
 
-            var logEvent = new LogEvent(DateTimeOffset.Now, level, exception, parsedTemplate, boundProperties);
+            LogEvent logEvent = new LogEvent(DateTimeOffset.Now, level, exception, parsedTemplate, boundProperties);
 
             logEvent.AddPropertyIfAbsent(new LogEventProperty("MethodName", new ScalarValue(methodName)));
             logEvent.AddPropertyIfAbsent(new LogEventProperty("ClassName", new ScalarValue(_typeName)));
@@ -303,11 +301,11 @@ namespace Tracer.Serilog.Adapters
         {
             if (_logger.IsEnabled(LogEventLevel.Debug))
             {
-                var props = new List<LogEventProperty>();
+                List<LogEventProperty> props = new List<LogEventProperty>();
 
                 if (paramNames != null)
                 {
-                    for (var i = 0; i < paramNames.Length; i++)
+                    for (int i = 0; i < paramNames.Length; i++)
                     {
                         if (paramValues[i] != null && ShouldDestructure(paramValues[i].GetType()))
                         {
@@ -324,13 +322,13 @@ namespace Tracer.Serilog.Adapters
                     }
                 }
 
-                var properties = new List<LogEventProperty>
+                List<LogEventProperty> properties = new List<LogEventProperty>
                 {
                     new LogEventProperty("MethodName", new ScalarValue(methodName)),
                     new LogEventProperty("CallingParameters", new StructureValue(props))
                 };
 
-                var logEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Debug, null, _traceEnterTemplate, properties);
+                LogEvent logEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Debug, null, _traceEnterTemplate, properties);
 
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("TraceType", new ScalarValue("Enter")));
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("ClassName", new ScalarValue(_typeName)));
@@ -343,11 +341,11 @@ namespace Tracer.Serilog.Adapters
         {
             if (_logger.IsEnabled(LogEventLevel.Debug))
             {
-                var props = new List<LogEventProperty>();
+                List<LogEventProperty> props = new List<LogEventProperty>();
 
                 if (paramNames != null)
                 {
-                    for (var i = 0; i < paramNames.Length; i++)
+                    for (int i = 0; i < paramNames.Length; i++)
                     {
                         if (paramValues[i] != null && ShouldDestructure(paramValues[i].GetType()))
                         {
@@ -364,16 +362,16 @@ namespace Tracer.Serilog.Adapters
                     }
                 }
 
-                var timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
+                double timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
 
-                var properties = new List<LogEventProperty>
+                List<LogEventProperty> properties = new List<LogEventProperty>
                 {
                     new LogEventProperty("MethodName", new ScalarValue(methodName)),
                     new LogEventProperty("ReturnValue", new StructureValue(props)),
                     new LogEventProperty("TimeTaken", new ScalarValue(timeTaken)),
                 };
 
-                var logEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Debug, null, _traceLeaveTemplate, properties);
+                LogEvent logEvent = new LogEvent(DateTimeOffset.Now, LogEventLevel.Debug, null, _traceLeaveTemplate, properties);
 
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("StartTicks", new ScalarValue(startTicks)));
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("EndTicks", new ScalarValue(endTicks)));
@@ -391,8 +389,8 @@ namespace Tracer.Serilog.Adapters
 
         private byte SeekForDestructureTypeAttribute(Assembly asm)
         {
-            var attribs = asm.GetCustomAttributes(typeof(DestructureTypeAttribute), false).Cast<DestructureTypeAttribute>();
-            foreach (var attrib in attribs)
+            IEnumerable<DestructureTypeAttribute> attribs = asm.GetCustomAttributes(typeof(DestructureTypeAttribute), false).Cast<DestructureTypeAttribute>();
+            foreach (DestructureTypeAttribute attrib in attribs)
             {
                 _destructureFlags.AddOrUpdate(attrib.TypeToDestructure, it => true, (it, old) => true);
             }
@@ -402,7 +400,7 @@ namespace Tracer.Serilog.Adapters
         private static void AddGenericPrettyFormat(StringBuilder sb, Type[] genericArgumentTypes)
         {
             sb.Append("<");
-            for (var i = 0; i < genericArgumentTypes.Length; i++)
+            for (int i = 0; i < genericArgumentTypes.Length; i++)
             {
                 sb.Append(genericArgumentTypes[i].Name);
                 if (i < genericArgumentTypes.Length - 1) sb.Append(", ");
@@ -418,7 +416,7 @@ namespace Tracer.Serilog.Adapters
 
         private static string PrettyFormat(Type type)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (type.IsGenericType && type.Name.Contains('`'))
             {
                 sb.Append(type.Name.Remove(type.Name.IndexOf('`')));
@@ -445,7 +443,7 @@ namespace Tracer.Serilog.Adapters
             if (message == null)
                 return stringRepresentationOfNull;
 
-            var str = message as string;
+            string str = message as string;
             if (str != null)
                 return str;
 

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,12 +9,12 @@ namespace TestApplication
         public void Run()
         {
             NoRetvalAsync("John", 42).Wait();
-            var x = StringRetvalAsync("John").Result;
-            var x2 = GenericRetvalAsync<string>("John").Result;
-            var x3 = GenericRetvalAsync<int>("John").Result;
+            string x = StringRetvalAsync("John").Result;
+            string x2 = GenericRetvalAsync<string>("John").Result;
+            int x3 = GenericRetvalAsync<int>("John").Result;
 
-            var xC = new GenericClassWithAsync<int>();
-            var x4 = xC.DoAsync(42).Result;
+            GenericClassWithAsync<int> xC = new GenericClassWithAsync<int>();
+            int x4 = xC.DoAsync(42).Result;
 
             //exception
             try
@@ -32,13 +29,13 @@ namespace TestApplication
         public async Task<string> StringRetvalAsync(string input)
         {
             await NoRetvalAsync(input, 42);
-            var x = await IntRetvalAsync(input);
+            int x = await IntRetvalAsync(input);
             return $"{input}Ret";
         }
 
         public async Task NoRetvalAsync(string inp1, int inp2)
         {
-            var inner = await IntRetvalAsync(inp1);
+            int inner = await IntRetvalAsync(inp1);
         }
 
         public async Task<int> IntRetvalAsync(string inp1)

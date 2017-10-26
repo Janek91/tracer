@@ -29,11 +29,11 @@ namespace Tracer.OutputWindow.Adapters
                     if (i < paramNames.Length - 1) parameters.Append(", ");
                 }
                 string argInfo = parameters.ToString();
-                message = String.Format("Entered into {0} ({1}).", methodInfo, argInfo);
+                message = string.Format("Entered into {0} ({1}).", methodInfo, argInfo);
             }
             else
             {
-                message = String.Format("Entered into {0}.", methodInfo);
+                message = string.Format("Entered into {0}.", methodInfo);
             }
 
             Debug.WriteLine(message);
@@ -57,7 +57,7 @@ namespace Tracer.OutputWindow.Adapters
 
             double timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
 
-            string message = String.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.", timeTaken, methodInfo,
+            string message = string.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.", timeTaken, methodInfo,
                 returnValue);
 
             Debug.WriteLine(message);
@@ -68,7 +68,7 @@ namespace Tracer.OutputWindow.Adapters
         private static double ConvertTicksToMilliseconds(long ticks)
         {
             //ticks * tickFrequency * 10000
-            return ticks*(10000000/(double) Stopwatch.Frequency)/10000L;
+            return ticks * (10000000 / (double)Stopwatch.Frequency) / 10000L;
         }
     }
 }

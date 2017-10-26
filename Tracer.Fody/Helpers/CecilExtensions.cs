@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
@@ -19,7 +16,7 @@ namespace Tracer.Fody.Helpers
         /// </summary>
         public static void InsertBefore(this Instruction instruction, ILProcessor processor, IEnumerable<Instruction> instructions)
         {
-            foreach (var newInstruction in instructions)
+            foreach (Instruction newInstruction in instructions)
             {
                 processor.InsertBefore(instruction, newInstruction);
             }
@@ -30,7 +27,7 @@ namespace Tracer.Fody.Helpers
         /// </summary>
         public static void InsertAfter(this Instruction instruction, ILProcessor processor, IEnumerable<Instruction> instructions)
         {
-            foreach (var newInstruction in instructions.Reverse())
+            foreach (Instruction newInstruction in instructions.Reverse())
             {
                 processor.InsertAfter(instruction, newInstruction);
             }
@@ -41,30 +38,30 @@ namespace Tracer.Fody.Helpers
         /// </summary>
         public static void InsertAtTheBeginning(this MethodBody body, IEnumerable<Instruction> instructions)
         {
-            var debugInfo = body.Method?.DebugInformation;
-            var processor = body.GetILProcessor();
+            MethodDebugInformation debugInfo = body.Method?.DebugInformation;
+            ILProcessor processor = body.GetILProcessor();
             if (body.Instructions.Count > 0)
             {
-                var seqPointToReplace = debugInfo?.GetSequencePoint(body.Instructions[0]);
+                SequencePoint seqPointToReplace = debugInfo?.GetSequencePoint(body.Instructions[0]);
                 body.Instructions[0].InsertBefore(processor, instructions);
 
                 if (seqPointToReplace != null)
                 {
-                    var newSeqPoint = new SequencePoint(body.Instructions[0], seqPointToReplace.Document)
+                    SequencePoint newSeqPoint = new SequencePoint(body.Instructions[0], seqPointToReplace.Document)
                     {
                         StartColumn = seqPointToReplace.StartColumn,
                         EndColumn = seqPointToReplace.EndColumn,
                         StartLine = seqPointToReplace.StartLine,
                         EndLine = seqPointToReplace.EndLine
                     };
-                    var idx = debugInfo.SequencePoints.IndexOf(seqPointToReplace);
+                    int idx = debugInfo.SequencePoints.IndexOf(seqPointToReplace);
                     debugInfo.SequencePoints[idx] = newSeqPoint;
                 }
 
             }
             else
             {
-                foreach (var instruction in instructions)
+                foreach (Instruction instruction in instructions)
                 {
                     processor.Append(instruction);
                 }
@@ -79,7 +76,7 @@ namespace Tracer.Fody.Helpers
         /// </returns>
         public static Instruction AddAtTheEnd(this MethodBody body, IEnumerable<Instruction> instructions)
         {
-            foreach (var instruction in instructions)
+            foreach (Instruction instruction in instructions)
             {
                 body.Instructions.Add(instruction);
             }
@@ -96,12 +93,12 @@ namespace Tracer.Fody.Helpers
         /// </summary>
         public static void Replace(this Collection<Instruction> collection, Instruction instructionToReplace, ICollection<Instruction> newInstructions)
         {
-            var newInstruction = newInstructions.First();
+            Instruction newInstruction = newInstructions.First();
             instructionToReplace.Operand = newInstruction.Operand;
             instructionToReplace.OpCode = newInstruction.OpCode;
 
-            var indexOf = collection.IndexOf(instructionToReplace);
-            foreach (var instruction1 in newInstructions.Skip(1))
+            int indexOf = collection.IndexOf(instructionToReplace);
+            foreach (Instruction instruction1 in newInstructions.Skip(1))
             {
                 collection.Insert(indexOf + 1, instruction1);
                 indexOf++;
@@ -112,8 +109,8 @@ namespace Tracer.Fody.Helpers
         public static TypeReference GetGenericInstantiationIfGeneric(this TypeReference definition)
         {
             if (!definition.HasGenericParameters) return definition;
-            var instType = new GenericInstanceType(definition);
-            foreach (var parameter in definition.GenericParameters)
+            GenericInstanceType instType = new GenericInstanceType(definition);
+            foreach (GenericParameter parameter in definition.GenericParameters)
             {
                 instType.GenericArguments.Add(parameter);
             }
@@ -131,9 +128,9 @@ namespace Tracer.Fody.Helpers
 
         public static VariableDefinition DeclareVariable(this MethodBody body, string name, TypeReference type)
         {
-            var variable = new VariableDefinition(type);
+            VariableDefinition variable = new VariableDefinition(type);
             body.Variables.Add(variable);
-            var variableDebug = new VariableDebugInformation(variable, name);
+            VariableDebugInformation variableDebug = new VariableDebugInformation(variable, name);
             body.Method?.DebugInformation?.Scope?.Variables?.Add(variableDebug);
             return variable;
         }

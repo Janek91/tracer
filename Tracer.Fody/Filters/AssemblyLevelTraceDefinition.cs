@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Mono.Cecil;
+using System;
 using System.Xml.Linq;
-using Mono.Cecil;
 
 namespace Tracer.Fody.Filters
 {
@@ -18,15 +15,15 @@ namespace Tracer.Fody.Filters
         {
             _namespace = ns;
         }
-        
+
         internal NamespaceScope NamespaceScope
         {
             get { return _namespace; }
         }
-        
+
         protected static NamespaceScope ParseNamespaceScope(XElement element)
         {
-            var attribute = element.Attribute("namespace");
+            XAttribute attribute = element.Attribute("namespace");
             if (attribute == null) return NamespaceScope.All;
             try
             {
@@ -34,7 +31,7 @@ namespace Tracer.Fody.Filters
             }
             catch (Exception ex)
             {
-                throw new ApplicationException(String.Format("Failed to parse configuration line {0}. See inner exception for details.", element.ToString()), ex);
+                throw new ApplicationException(string.Format("Failed to parse configuration line {0}. See inner exception for details.", element.ToString()), ex);
             }
         }
 

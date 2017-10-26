@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Mono.Cecil;
 using Tracer.Fody.Helpers;
@@ -63,7 +60,7 @@ namespace Tracer.Fody.Filters
             }
             else
             { //its a property accessor check the prop for the attribute
-                var correspondingProp =
+                PropertyDefinition correspondingProp =
                     definition.DeclaringType.Properties.FirstOrDefault(prop => prop.GetMethod == definition || prop.SetMethod == definition);
                 if (correspondingProp != null)
                 {
@@ -79,14 +76,14 @@ namespace Tracer.Fody.Filters
 
         private bool? ShouldTraceBasedOnClassLevelInfo(MethodDefinition definition)
         {
-            var attributeInfo = GetTraceAttributeInfoForType(definition.DeclaringType);
+            TraceAttributeInfo attributeInfo = GetTraceAttributeInfoForType(definition.DeclaringType);
 
             if (attributeInfo != null)
             {
                 if (attributeInfo.IsNoTrace) { return false; }
 
-                var targetVisibility = attributeInfo.TargetVisibility;
-                var methodVisibility = VisibilityHelper.GetMethodVisibilityLevel(definition);
+                TraceTargetVisibility targetVisibility = attributeInfo.TargetVisibility;
+                VisibilityLevel methodVisibility = VisibilityHelper.GetMethodVisibilityLevel(definition);
                 return ((int)targetVisibility >= (int)methodVisibility);
 
             }
@@ -115,7 +112,7 @@ namespace Tracer.Fody.Filters
                 return TraceAttributeInfo.NoTrace();
             }
 
-            var traceOnAttribute = type.CustomAttributes.FirstOrDefault(
+            CustomAttribute traceOnAttribute = type.CustomAttributes.FirstOrDefault(
                 attr => attr.AttributeType.FullName.Equals("TracerAttributes.TraceOn", StringComparison.Ordinal));
 
             if (traceOnAttribute != null)
@@ -131,7 +128,7 @@ namespace Tracer.Fody.Filters
 
         private TraceTargetVisibility GetTargetVisibilityFromAttribute(CustomAttribute attribute)
         {
-            var intVal = 0; //defaults to public
+            int intVal = 0; //defaults to public
             if (attribute.HasProperties)
             {
                 intVal = (int)attribute.Properties[0].Argument.Value;
@@ -147,7 +144,7 @@ namespace Tracer.Fody.Filters
         private bool ShouldTraceBasedOnAssemblyLevelInfo(MethodDefinition definition)
         {
             //get matching assembly level rule (note that defs are ordered from more specific to least specific. On same level noTrace trumps traceOn)
-            var rule = _assemblyLevelTraceDefinitions.FirstOrDefault(
+            AssemblyLevelTraceDefinition rule = _assemblyLevelTraceDefinitions.FirstOrDefault(
                     def => def.IsMatching(definition));
 
             if (rule != null)

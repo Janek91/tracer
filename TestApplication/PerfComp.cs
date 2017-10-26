@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
 using Tracer.Log4Net;
 
@@ -16,7 +12,7 @@ namespace TestApplication
 
         public void SpeedTest()
         {
-            var sw = Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
 
             for (int i = 0; i < LoopCnt; i++)
             {

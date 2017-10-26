@@ -12,12 +12,12 @@ namespace Tracer.Log4Net.Tests
         [Test, Explicit, Category("manual")]
         public void WeaveMyApplication()
         {
-            var config = TraceLoggingConfiguration.New
+            TraceLoggingConfiguration.TraceLoggingConfigurationBuilder config = TraceLoggingConfiguration.New
                 .WithFilter(new PublicMethodsFilter())
-                .WithAdapterAssembly(typeof(Tracer.Serilog.Log).Assembly.GetName().FullName)
-                .WithLogManager(typeof(Tracer.Serilog.Adapters.LogManagerAdapter).FullName)
-                .WithLogger(typeof(Tracer.Serilog.Adapters.LoggerAdapter).FullName)
-                .WithStaticLogger(typeof(Tracer.Serilog.Log).FullName);
+                .WithAdapterAssembly(typeof(Serilog.Log).Assembly.GetName().FullName)
+                .WithLogManager(typeof(Serilog.Adapters.LogManagerAdapter).FullName)
+                .WithLogger(typeof(Serilog.Adapters.LoggerAdapter).FullName)
+                .WithStaticLogger(typeof(Serilog.Log).FullName);
 
             AssemblyWeaver.Execute("..\\..\\..\\TestApplication.Serilog\\bin\\debug\\TestApplication.Serilog.exe", config);
         }

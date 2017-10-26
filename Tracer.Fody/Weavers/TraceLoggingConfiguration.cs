@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Mono.Cecil;
+using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Mono.Cecil;
 
 namespace Tracer.Fody.Weavers
 {
@@ -18,14 +15,14 @@ namespace Tracer.Fody.Weavers
         private readonly bool _traceConstructors;
         private readonly bool _traceProperties;
 
-        private TraceLoggingConfiguration(ITraceLoggingFilter filter, string adapterAssemblyDisplayName, 
+        private TraceLoggingConfiguration(ITraceLoggingFilter filter, string adapterAssemblyDisplayName,
             string loggerAdapterTypeName, string logManagerAdapterTypeName, string staticLoggerTypeFullName, bool traceConstructors
-            ,bool traceProperties)
+            , bool traceProperties)
         {
             _filter = filter ?? NullFilter.Instance;
             _adapterAssemblyName = new AssemblyName(adapterAssemblyDisplayName ?? "Tracer.LogAdapter, Version=1.0.0.0");
             //set version to avoid cecil nullRef exception issue
-            if (_adapterAssemblyName.Version == null) _adapterAssemblyName.Version = new Version(0,0,0,0);
+            if (_adapterAssemblyName.Version == null) _adapterAssemblyName.Version = new Version(0, 0, 0, 0);
             _loggerAdapterTypeFullName = loggerAdapterTypeName ?? "Tracer.LogAdapter.ILog";
             _logManagerAdapterTypeFullName = logManagerAdapterTypeName ?? "Tracer.LogAdapter.LogManager";
             _staticLoggerTypeFullName = staticLoggerTypeFullName ?? "Tracer.LogAdapter.Log";
@@ -35,7 +32,7 @@ namespace Tracer.Fody.Weavers
 
         public static TraceLoggingConfigurationBuilder New
         {
-            get {  return new TraceLoggingConfigurationBuilder(); }
+            get { return new TraceLoggingConfigurationBuilder(); }
         }
 
         public ITraceLoggingFilter Filter
@@ -85,7 +82,7 @@ namespace Tracer.Fody.Weavers
 
         public bool ShouldTraceProperties
         {
-            get {  return _traceProperties; }
+            get { return _traceProperties; }
         }
 
         public class TypeName
@@ -96,9 +93,9 @@ namespace Tracer.Fody.Weavers
             public TypeName(string fullName)
             {
                 //TODO checks, validation
-                var nameSplit = fullName.Split('.');
+                string[] nameSplit = fullName.Split('.');
                 _name = nameSplit[nameSplit.Length - 1];
-                _namespace = String.Join(".", nameSplit.Take(nameSplit.Length - 1));
+                _namespace = string.Join(".", nameSplit.Take(nameSplit.Length - 1));
             }
 
             public TypeName(string ns, string name)
@@ -123,7 +120,7 @@ namespace Tracer.Fody.Weavers
             public static readonly NullFilter Instance = new NullFilter();
 
             private NullFilter()
-            {}
+            { }
 
             public bool ShouldAddTrace(MethodDefinition definition)
             {

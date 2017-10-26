@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
 using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
@@ -26,7 +24,7 @@ namespace Tracer.Fody.Weavers
         protected override void WeaveTraceEnter()
         {
             _firstInstructionAfterTraceEnter = _body.Instructions.FirstOrDefault();
-            var instructions = CreateTraceEnterCallInstructions();
+            List<Instruction> instructions = CreateTraceEnterCallInstructions();
             _body.InsertAtTheBeginning(instructions);
         }
 
@@ -51,10 +49,10 @@ namespace Tracer.Fody.Weavers
                 returnValueDef = _body.DeclareVariable("$returnValue", ReturnType);
             }
 
-            var allReturns = _body.Instructions.Where(instr => instr.OpCode == OpCodes.Ret).ToList();
-            var handlerStart = CreateExceptionHandlerAtTheEnd();
+            List<Instruction> allReturns = _body.Instructions.Where(instr => instr.OpCode == OpCodes.Ret).ToList();
+            Instruction handlerStart = CreateExceptionHandlerAtTheEnd();
 
-            var loggingReturnStart = CreateLoggingReturnAtTheEnd(returnValueDef);
+            Instruction loggingReturnStart = CreateLoggingReturnAtTheEnd(returnValueDef);
 
             //add exception handler 
             if (!_isEmptyBody)
@@ -69,7 +67,7 @@ namespace Tracer.Fody.Weavers
                 });
             }
             
-            foreach (var @return in allReturns)
+            foreach (Instruction @return in allReturns)
             {
                 ChangeReturnToLeaveLoggingReturn(@return, returnValueDef, loggingReturnStart);
             }
@@ -78,7 +76,7 @@ namespace Tracer.Fody.Weavers
         //redirect return to actualReturn
         private void ChangeReturnToLeaveLoggingReturn(Instruction @return, VariableDefinition returnValueDef, Instruction actualReturn)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
             
             if (HasReturnValue)
             {
@@ -92,15 +90,15 @@ namespace Tracer.Fody.Weavers
 
         private Instruction CreateExceptionHandlerAtTheEnd()
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
             //store the exception
-            var exceptionValue = _body.DeclareVariable("$exceptionValue", _typeReferenceProvider.Object);
+            VariableDefinition exceptionValue = _body.DeclareVariable("$exceptionValue", _typeReferenceProvider.Object);
             instructions.Add(Instruction.Create(OpCodes.Stloc, exceptionValue));
 
             //do the logging 
-            var paramNamesDef = ParamNamesVariable;
-            var paramValuesDef = ParamValuesVariable;
+            VariableDefinition paramNamesDef = ParamNamesVariable;
+            VariableDefinition paramValuesDef = ParamValuesVariable;
 
             instructions.AddRange(InitArray(paramNamesDef, 1, _typeReferenceProvider.String));
             instructions.AddRange(InitArray(paramValuesDef, 1, _typeReferenceProvider.Object));
@@ -129,13 +127,13 @@ namespace Tracer.Fody.Weavers
 
         private Instruction CreateLoggingReturnAtTheEnd(VariableDefinition returnValueDef)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
             VariableDefinition paramNamesDef = null;
             VariableDefinition paramValuesDef = null;
             
-            var traceLeaveNeedsParamArray = (HasReturnValue || _body.Method.Parameters.Any(param => param.IsOut || param.ParameterType.IsByReference));
-            var traceLeaveParamArraySize = _body.Method.Parameters.Count(param => param.IsOut || param.ParameterType.IsByReference) + (HasReturnValue ? 1 : 0); 
+            bool traceLeaveNeedsParamArray = (HasReturnValue || _body.Method.Parameters.Any(param => param.IsOut || param.ParameterType.IsByReference));
+            int traceLeaveParamArraySize = _body.Method.Parameters.Count(param => param.IsOut || param.ParameterType.IsByReference) + (HasReturnValue ? 1 : 0); 
 
             if (traceLeaveNeedsParamArray)
             {
@@ -184,9 +182,9 @@ namespace Tracer.Fody.Weavers
         protected override void SearchForAndReplaceStaticLogCalls()
         {
             //look for static log calls
-            foreach (var instruction in _body.Instructions.ToList()) //create a copy of the instructions so we can update the original
+            foreach (Instruction instruction in _body.Instructions.ToList()) //create a copy of the instructions so we can update the original
             {
-                var methodReference = instruction.Operand as MethodReference;
+                MethodReference methodReference = instruction.Operand as MethodReference;
                 if (instruction.OpCode == OpCodes.Call && methodReference != null && IsStaticLogTypeOrItsInnerType(methodReference.DeclaringType))
                 {
                     //change the call
@@ -208,19 +206,19 @@ namespace Tracer.Fody.Weavers
         /// and insert the instance ref there plus change the call instraction
         private void ChangeStaticLogCallWithParameter(Instruction oldInstruction)
         {
-            var instructions = new List<Instruction>();
-            var methodReference = (MethodReference)oldInstruction.Operand;
-            var methodReferenceInfo = new MethodReferenceInfo(methodReference);
+            List<Instruction> instructions = new List<Instruction>();
+            MethodReference methodReference = (MethodReference)oldInstruction.Operand;
+            MethodReferenceInfo methodReferenceInfo = new MethodReferenceInfo(methodReference);
 
             if (methodReferenceInfo.IsPropertyAccessor() && methodReferenceInfo.IsSetter)
             {
                 throw new ApplicationException("Rewriting static property setters is not supported.");
             }
 
-            var parameters = methodReference.Parameters;
+            Collection<ParameterDefinition> parameters = methodReference.Parameters;
 
             //create variables to store parameters and push values into them
-            var variables = new VariableDefinition[parameters.Count];
+            VariableDefinition[] variables = new VariableDefinition[parameters.Count];
 
             for (int idx = 0; idx < parameters.Count; idx++)
             {
@@ -250,10 +248,10 @@ namespace Tracer.Fody.Weavers
 
         private void ChangeStaticLogCallWithoutParameter(Instruction oldInstruction)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
-            var methodReference = (MethodReference)oldInstruction.Operand;
-            var methodReferenceInfo = new MethodReferenceInfo(methodReference);
+            MethodReference methodReference = (MethodReference)oldInstruction.Operand;
+            MethodReferenceInfo methodReferenceInfo = new MethodReferenceInfo(methodReference);
 
             instructions.Add(Instruction.Create(OpCodes.Ldsfld, _loggerProvider.StaticLogger));
 

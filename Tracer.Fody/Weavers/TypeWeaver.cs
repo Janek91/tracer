@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Mono.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
@@ -16,7 +12,7 @@ namespace Tracer.Fody.Weavers
     /// <summary>
     /// Executes weaving on the given type.
     /// </summary>
-    internal class TypeWeaver : MethodWeaver.ILoggerProvider
+    internal class TypeWeaver : MethodWeaverBase.ILoggerProvider
     {
         private readonly TypeDefinition _typeDefinition;
         private readonly ITraceLoggingFilter _filter;
@@ -49,18 +45,18 @@ namespace Tracer.Fody.Weavers
         /// </summary>
         public void Execute()
         {
-            var methodsToVisit = _typeDefinition.GetMethods().Concat(_typeDefinition.GetConstructors())
+            IEnumerable<MethodDefinition> methodsToVisit = _typeDefinition.GetMethods().Concat(_typeDefinition.GetConstructors())
                 .Where(method => method.HasBody && !method.IsAbstract);
 
-            foreach (var method in methodsToVisit.ToList())
+            foreach (MethodDefinition method in methodsToVisit.ToList())
             {
                 if (AlreadyWeaved(method)) continue;
 
-                bool shouldAddTrace = !HasCompilerGeneratedAttribute 
+                bool shouldAddTrace = !HasCompilerGeneratedAttribute
                     && ((method.IsConstructor && _shouldTraceConstructors && !method.IsStatic) || !method.IsConstructor)
                     && _filter.ShouldAddTrace(method)
                     && ((method.IsPropertyAccessor() && _shouldTraceProperties) || !method.IsPropertyAccessor());
-               
+
                 _methodWeaverFactory.Create(method).Execute(shouldAddTrace);
             }
         }
@@ -73,9 +69,9 @@ namespace Tracer.Fody.Weavers
         private bool AlreadyWeaved(MethodDefinition method)
         {
             //if we have an instruction loading the static logger we've already been here
-            var logTypeRef = _typeReferenceProvider.LogAdapterReference;
+            TypeReference logTypeRef = _typeReferenceProvider.LogAdapterReference;
 
-            var referencedStaticFields = method.Body.Instructions.Where(instr => instr.OpCode == OpCodes.Ldsfld)
+            IEnumerable<FieldReference> referencedStaticFields = method.Body.Instructions.Where(instr => instr.OpCode == OpCodes.Ldsfld)
                 .Select(instr => instr.Operand)
                 .OfType<FieldReference>();
 
@@ -91,21 +87,21 @@ namespace Tracer.Fody.Weavers
             MethodReferenceProvider methodReferenceProvider,
             TypeDefinition typeDefinition)
         {
-            var logTypeRef = typeReferenceProvider.LogAdapterReference;
-            var logManagerTypeRef = typeReferenceProvider.LogManagerReference;
+            TypeReference logTypeRef = typeReferenceProvider.LogAdapterReference;
+            TypeReference logManagerTypeRef = typeReferenceProvider.LogManagerReference;
 
             //look for existing one
-            var loggerField = typeDefinition.Fields.FirstOrDefault(fld => fld.IsStatic &&
+            FieldDefinition loggerField = typeDefinition.Fields.FirstOrDefault(fld => fld.IsStatic &&
             fld.FieldType.FullName.Equals(logTypeRef.FullName));
 
             if (loggerField != null) return loggerField.FixFieldReferenceIfDeclaringTypeIsGeneric();
 
             //$log should be unique
-            loggerField = new FieldDefinition("$log", FieldAttributes.Private | FieldAttributes.Static, logTypeRef); 
+            loggerField = new FieldDefinition("$log", FieldAttributes.Private | FieldAttributes.Static, logTypeRef);
             typeDefinition.Fields.Add(loggerField);
 
             //create field init
-            var staticConstructor = typeDefinition.GetStaticConstructor();
+            MethodDefinition staticConstructor = typeDefinition.GetStaticConstructor();
             if (staticConstructor == null)
             {
                 const MethodAttributes methodAttributes = MethodAttributes.Private | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
@@ -114,22 +110,22 @@ namespace Tracer.Fody.Weavers
                 staticConstructor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
             }
 
-            var getLoggerMethod = new MethodReference("GetLogger", logTypeRef, logManagerTypeRef);
+            MethodReference getLoggerMethod = new MethodReference("GetLogger", logTypeRef, logManagerTypeRef);
             getLoggerMethod.Parameters.Add(new ParameterDefinition(typeReferenceProvider.Type));
 
             //build up typeInfo
-            var getTypeFromHandleMethod = methodReferenceProvider.GetGetTypeFromHandleReference();
+            MethodReference getTypeFromHandleMethod = methodReferenceProvider.GetGetTypeFromHandleReference();
 
             //spec treatment for generic types 
-            var loggerFieldRef = loggerField.FixFieldReferenceIfDeclaringTypeIsGeneric();
+            FieldReference loggerFieldRef = loggerField.FixFieldReferenceIfDeclaringTypeIsGeneric();
 
             //if generated nested type use the declaring type as logger type as it is more natural from 
             //end users perspective
-            var hasCompilerGeneratedAttribute = typeDefinition.HasCustomAttributes && typeDefinition.CustomAttributes
+            bool hasCompilerGeneratedAttribute = typeDefinition.HasCustomAttributes && typeDefinition.CustomAttributes
                 .Any(attr => attr.AttributeType.FullName.Equals(typeof(CompilerGeneratedAttribute).FullName, StringComparison.Ordinal));
 
-            var loggerTypeDefinition = hasCompilerGeneratedAttribute && typeDefinition.IsNested
-                                                ? typeDefinition.DeclaringType :  typeDefinition;
+            TypeDefinition loggerTypeDefinition = hasCompilerGeneratedAttribute && typeDefinition.IsNested
+                                                ? typeDefinition.DeclaringType : typeDefinition;
 
             staticConstructor.Body.InsertAtTheBeginning(new[]
             {

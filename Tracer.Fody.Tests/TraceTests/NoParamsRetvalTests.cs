@@ -31,7 +31,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetIntValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetIntValue", "1");
@@ -61,7 +61,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetStringValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetStringValue", "Hello");
@@ -94,7 +94,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetValue", "First.MyRetVal");
@@ -134,7 +134,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetStructValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetStructValue", "I42");
@@ -165,7 +165,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetIntValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetIntValue", "1");
@@ -206,7 +206,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::GetStructValue");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::GetStructValue", "I42");

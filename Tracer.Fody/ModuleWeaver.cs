@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Tracer.Fody.Filters;
 using Tracer.Fody.Helpers;
 using Tracer.Fody.Weavers;
 
@@ -29,7 +22,7 @@ namespace Tracer.Fody
         {
             WeavingLog.SetLogger(this);
 
-            var parser = FodyConfigParser.Parse(Config);
+            FodyConfigParser parser = FodyConfigParser.Parse(Config);
 
             if (parser.IsErroneous)
             {

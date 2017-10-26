@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using log4net;
 using Tracer.Log4Net;
 using TracerAttributes;
 
@@ -28,7 +24,7 @@ namespace TestApplication
         {
             Thread.Sleep(500);
 
-            Enumerable(new[] {"hi", "there", "!"});
+            Enumerable(new[] { "hi", "there", "!" });
 
             NotTracedNamespace.NotTraced.SomeMethod("Hello");
 
@@ -46,26 +42,26 @@ namespace TestApplication
 
             OutParamLogs();
 
-            var structParams = new StructParamClass();
+            StructParamClass structParams = new StructParamClass();
             structParams.RunStructs();
 
             Write(Add(21, 22));
             Write(Add(100, 1));
 
-            var perfComp = new PerfComp();
+            PerfComp perfComp = new PerfComp();
             perfComp.SpeedTest();
         }
 
         public void AsyncTests()
         {
-            var x = new MyAsyncClass();
+            MyAsyncClass x = new MyAsyncClass();
             x.Run();
         }
 
         public void PropertyTests()
         {
-            this.TestProperty = "Hello";
-            var val = this.TestProperty;
+            TestProperty = "Hello";
+            string val = TestProperty;
         }
 
         public void StaticLogPropertyRewrites()
@@ -94,7 +90,7 @@ namespace TestApplication
 
         public void OutParamLogs()
         {
-            var op = new OutParamClass();
+            OutParamClass op = new OutParamClass();
             string outString;
             op.SetParamString("in", out outString);
             int outInt;
@@ -177,10 +173,10 @@ namespace TestApplication
 
         private void GenericClassTests()
         {
-            var intGen = new GenericClass<int>();
+            GenericClass<int> intGen = new GenericClass<int>();
             Write(intGen.GetDefault(42));
 
-            var stringGen = new GenericClass<string>();
+            GenericClass<string> stringGen = new GenericClass<string>();
             Write(stringGen.GetDefault("Hello"));
         }
 
@@ -207,7 +203,7 @@ namespace TestApplication
 
         public int ThrowException(int inp)
         {
-            return 1/inp;
+            return 1 / inp;
         }
 
         public void Write<T>(T input)

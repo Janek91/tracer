@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
 using Tracer.Fody.Tests.MockLoggers;
 
@@ -44,7 +40,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");
@@ -85,7 +81,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");
@@ -127,7 +123,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(8);
         }
 
@@ -166,7 +162,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(6);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");
@@ -209,7 +205,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");
@@ -264,7 +260,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(6);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.OtherClass::DoubleInt", "p", "42");
@@ -308,7 +304,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(8);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");
@@ -354,7 +350,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::CallMe", "Hello");
@@ -402,7 +398,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(6);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Double", "p", "42");

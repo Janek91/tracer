@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading;
+﻿using System.IO;
 using Mono.Cecil;
-using Mono.Cecil.Pdb;
 using Tracer.Fody.Weavers;
 
 namespace Tracer.Fody
@@ -52,14 +49,14 @@ namespace Tracer.Fody
         /// </example>
         public static void Execute(string assemblyPath, TraceLoggingConfiguration configuration)
         {
-            var pdbFile = Path.ChangeExtension(assemblyPath, "pdb");
-            var hasPdb = File.Exists(pdbFile);
+            string pdbFile = Path.ChangeExtension(assemblyPath, "pdb");
+            bool hasPdb = File.Exists(pdbFile);
 
             if (hasPdb)
             {
                 //using (var symbolStream = File.OpenRead(pdbFile))
                 //{
-                    using (var moduleDef = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters
+                    using (ModuleDefinition moduleDef = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters
                     {
                         AssemblyResolver = new DefaultAssemblyResolver(),
                         ReadSymbols = true,
@@ -79,7 +76,7 @@ namespace Tracer.Fody
             }
             else
             {
-                using (var moduleDef = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters() { ReadWrite = true }))
+                using (ModuleDefinition moduleDef = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters() { ReadWrite = true }))
                 {
                     //execute weaving
                     ModuleLevelWeaver.Execute(configuration, moduleDef);

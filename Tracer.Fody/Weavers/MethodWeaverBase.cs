@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
@@ -38,7 +37,7 @@ namespace Tracer.Fody.Weavers
             get
             {
                 //check if method name is generated and prettyfy it
-                var position = _methodDefinition.Name.IndexOf(">", StringComparison.OrdinalIgnoreCase);
+                int position = _methodDefinition.Name.IndexOf(">", StringComparison.OrdinalIgnoreCase);
                 return position > 1 ? _methodDefinition.Name.Substring(1, position - 1) : _methodDefinition.Name;
             }
         }
@@ -78,7 +77,7 @@ namespace Tracer.Fody.Weavers
         protected abstract void WeaveTraceLeave();
 
         protected abstract void SearchForAndReplaceStaticLogCalls();
-        
+
         protected List<Instruction> CreateTraceEnterCallInstructions()
         {
             /* TRACE ENTRY: 
@@ -89,12 +88,12 @@ namespace Tracer.Fody.Weavers
  * var startTick = Stopwatch.GetTimestamp();
  * ...(existing code)...
  */
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
             VariableDefinition paramNamesDef = null;
             VariableDefinition paramValuesDef = null;
 
-            var traceEnterNeedsParamArray = _body.Method.Parameters.Any(param => !param.IsOut);
-            var traceEnterParamArraySize = _body.Method.Parameters.Count(param => !param.IsOut);
+            bool traceEnterNeedsParamArray = _body.Method.Parameters.Any(param => !param.IsOut);
+            int traceEnterParamArraySize = _body.Method.Parameters.Count(param => !param.IsOut);
 
             if (traceEnterNeedsParamArray)
             {
@@ -181,7 +180,7 @@ namespace Tracer.Fody.Weavers
         {
             yield return Instruction.Create(OpCodes.Ldloc, arrayVar);
             yield return Instruction.Create(OpCodes.Ldc_I4, position);
-            foreach (var instruction in putValueOnStack)
+            foreach (Instruction instruction in putValueOnStack)
             {
                 yield return instruction;
             }
@@ -190,7 +189,7 @@ namespace Tracer.Fody.Weavers
 
         protected IEnumerable<Instruction> StoreVariableInObjectArray(VariableDefinition arrayVar, int position, VariableDefinition variable)
         {
-            var varType = variable.VariableType;
+            TypeReference varType = variable.VariableType;
             yield return Instruction.Create(OpCodes.Ldloc, arrayVar);
             yield return Instruction.Create(OpCodes.Ldc_I4, position);
             yield return Instruction.Create(OpCodes.Ldloc, variable);
@@ -209,8 +208,8 @@ namespace Tracer.Fody.Weavers
 
         private IEnumerable<Instruction> StoreParameterInObjectArray(VariableDefinition arrayVar, int position, ParameterDefinition parameter)
         {
-            var parameterType = parameter.ParameterType;
-            var parameterElementType = parameterType.IsByReference ? ((ByReferenceType) parameterType).ElementType : parameterType;
+            TypeReference parameterType = parameter.ParameterType;
+            TypeReference parameterElementType = parameterType.IsByReference ? ((ByReferenceType)parameterType).ElementType : parameterType;
             yield return Instruction.Create(OpCodes.Ldloc, arrayVar);
             yield return Instruction.Create(OpCodes.Ldc_I4, position);
             yield return Instruction.Create(OpCodes.Ldarg, parameter);
@@ -271,9 +270,9 @@ namespace Tracer.Fody.Weavers
         protected IEnumerable<Instruction> BuildInstructionsToCopyParameterNamesAndValues(IEnumerable<ParameterDefinition> parameters,
             VariableDefinition paramNamesDef, VariableDefinition paramValuesDef, int startingIndex)
         {
-            var instructions = new List<Instruction>();
-            var index = startingIndex;
-            foreach (var parameter in parameters)
+            List<Instruction> instructions = new List<Instruction>();
+            int index = startingIndex;
+            foreach (ParameterDefinition parameter in parameters)
             {
                 //set name at index
                 instructions.AddRange(StoreValueReadByInstructionsInArray(paramNamesDef, index, Instruction.Create(OpCodes.Ldstr, parameter.Name)));
@@ -286,12 +285,12 @@ namespace Tracer.Fody.Weavers
 
         protected IEnumerable<Instruction> LoadMethodNameOnStack()
         {
-            var sb = new StringBuilder();
-            sb.Append((string) PrettyMethodName);
+            StringBuilder sb = new StringBuilder();
+            sb.Append((string)PrettyMethodName);
             sb.Append("(");
             for (int i = 0; i < _methodDefinition.Parameters.Count; i++)
             {
-                var paramDef = _methodDefinition.Parameters[i];
+                ParameterDefinition paramDef = _methodDefinition.Parameters[i];
                 if (paramDef.IsOut) sb.Append("out ");
                 sb.Append(paramDef.ParameterType.Name);
                 if (i < _methodDefinition.Parameters.Count - 1) sb.Append(", ");
@@ -318,20 +317,20 @@ namespace Tracer.Fody.Weavers
 
         protected static VariableDefinition GetVariableDefinitionForType(TypeReference typeRef, MethodReference methodReference, MethodReference hostMethodDefinition)
         {
-            var genericParameter = typeRef as GenericParameter;
+            GenericParameter genericParameter = typeRef as GenericParameter;
             //if not generic param or a type defined generic param or generic defined in host method return normally
-            if (genericParameter == null || 
+            if (genericParameter == null ||
                 genericParameter.DeclaringType != null ||
                 (genericParameter.DeclaringMethod == hostMethodDefinition)) return new VariableDefinition(typeRef);
-           
+
             //generic is defined in the called method
-            var genericMethod = methodReference as GenericInstanceMethod;
+            GenericInstanceMethod genericMethod = methodReference as GenericInstanceMethod;
             if (genericMethod == null) throw new ApplicationException("Generic parameter for a non generic method."); //should not happen
 
             int idx;
-            if (!Int32.TryParse(genericParameter.Name.Replace('!', ' '), out idx))
+            if (!int.TryParse(genericParameter.Name.Replace('!', ' '), out idx))
             {
-                throw new ApplicationException(String.Format("Generic parameter {0} cannot be parsed for index.", genericParameter.Name));
+                throw new ApplicationException(string.Format("Generic parameter {0} cannot be parsed for index.", genericParameter.Name));
             }
 
             return new VariableDefinition(genericMethod.GenericArguments[idx]);

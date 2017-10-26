@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
 using Tracer.Fody.Tests.MockLoggers;
 
@@ -43,7 +38,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new TestBase.PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::CallMe", "response42");
@@ -81,7 +76,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new TestBase.PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::CallMe", "exception42");
@@ -115,7 +110,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new TestBase.PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceLeaveFrom("First.MyClass::CallMe", "response42");

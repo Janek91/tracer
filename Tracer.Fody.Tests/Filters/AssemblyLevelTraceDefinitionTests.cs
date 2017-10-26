@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using FluentAssertions;
 using NUnit.Framework;
@@ -36,7 +34,7 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Parse_TraceOn_MethodAttribute_Values()
         {
-            var result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn class=\"public\" method=\"public\" />"));
+            AssemblyLevelTraceOnDefinition result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn class=\"public\" method=\"public\" />"));
             result.TargetClass.Should().Be(TraceTargetVisibility.Public);
             result.TargetMethod.Should().Be(TraceTargetVisibility.Public);
             result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn class=\"private\" method=\"private\" />"));
@@ -47,7 +45,7 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Parse_TraceOn_NamespaceAttribute_Values()
         {
-            var result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn namespace=\"rootnamespace\" class=\"public\" method=\"public\" />"));
+            AssemblyLevelTraceOnDefinition result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn namespace=\"rootnamespace\" class=\"public\" method=\"public\" />"));
             result.NamespaceScope.IsMatching("rootnamespace").Should().BeTrue();
             result = AssemblyLevelTraceOnDefinition.ParseFromConfig(XElement.Parse("<TraceOn namespace=\"rootnamespace.other\" class=\"public\" method=\"public\" />"));
             result.NamespaceScope.IsMatching("rootnamespace.other").Should().BeTrue();
@@ -59,7 +57,7 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Parse_NoTrace_NamespaceAttribute_Values()
         {
-            var result = AssemblyLevelNoTraceDefinition.ParseFromConfig(XElement.Parse("<NoTrace namespace=\"rootnamespace\" />"));
+            AssemblyLevelNoTraceDefinition result = AssemblyLevelNoTraceDefinition.ParseFromConfig(XElement.Parse("<NoTrace namespace=\"rootnamespace\" />"));
             result.NamespaceScope.IsMatching("rootnamespace").Should().BeTrue();
             result = AssemblyLevelNoTraceDefinition.ParseFromConfig(XElement.Parse("<NoTrace namespace=\"rootnamespace.other\" />"));
             result.NamespaceScope.IsMatching("rootnamespace.other").Should().BeTrue();
@@ -71,11 +69,11 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_NamespaceNameOrder()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other.deep"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other.deep"), TraceTargetVisibility.All, TraceTargetVisibility.All);
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def3);
@@ -86,11 +84,11 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_NamespaceDefinitionTypeOrder()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace+*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace+*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def1);
@@ -101,11 +99,11 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_NamespaceDefinitionTypeAndNamespaceLengthOrder()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.*"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def3);
@@ -116,12 +114,12 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_TraceOnNoTraceOrder()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def3 = new AssemblyLevelNoTraceDefinition(NamespaceScope.Parse("rootnamespace"));
-            var def4 = new AssemblyLevelNoTraceDefinition(NamespaceScope.Parse("rootnamespace.other"));
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelNoTraceDefinition def3 = new AssemblyLevelNoTraceDefinition(NamespaceScope.Parse("rootnamespace"));
+            AssemblyLevelNoTraceDefinition def4 = new AssemblyLevelNoTraceDefinition(NamespaceScope.Parse("rootnamespace.other"));
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def4);
@@ -133,13 +131,13 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_ClassVisibility()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.InternalOrMoreVisible, TraceTargetVisibility.All);
-            var def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.Public, TraceTargetVisibility.All);
-            var def4 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.ProtectedOrMoreVisible, TraceTargetVisibility.All);
-            var def5 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.None, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.InternalOrMoreVisible, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.Public, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def4 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.ProtectedOrMoreVisible, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def5 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.None, TraceTargetVisibility.All);
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4, def5 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4, def5 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def5);
@@ -152,13 +150,13 @@ namespace Tracer.Fody.Tests.Filters
         [Test]
         public void Sorting_MethodVisibility()
         {
-            var def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
-            var def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.InternalOrMoreVisible);
-            var def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.Public);
-            var def4 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.ProtectedOrMoreVisible);
-            var def5 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.None);
+            AssemblyLevelTraceOnDefinition def1 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.All);
+            AssemblyLevelTraceOnDefinition def2 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.InternalOrMoreVisible);
+            AssemblyLevelTraceOnDefinition def3 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.Public);
+            AssemblyLevelTraceOnDefinition def4 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.ProtectedOrMoreVisible);
+            AssemblyLevelTraceOnDefinition def5 = new AssemblyLevelTraceOnDefinition(NamespaceScope.Parse("rootnamespace.other"), TraceTargetVisibility.All, TraceTargetVisibility.None);
 
-            var list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4, def5 };
+            List<AssemblyLevelTraceDefinition> list = new List<AssemblyLevelTraceDefinition>() { def1, def2, def3, def4, def5 };
             list.Sort(new AssemblyLevelTraceDefinitionComparer());
 
             list[0].Should().BeSameAs(def5);

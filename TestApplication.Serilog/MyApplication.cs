@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Serilog.Events;
 using Tracer.Serilog;
 
@@ -58,7 +54,7 @@ namespace TestApplication.Serilog
             Log.Write(LogEventLevel.Debug, new ApplicationException("error"), "message");
             Log.Write(LogEventLevel.Debug, new ApplicationException("error"), "Logging integer {intVal}and string {stringVal}", 42, "hello");
 
-            var result = DoSomething(42, "John");
+            string result = DoSomething(42, "John");
 
             OutParamLogs();
 
@@ -79,7 +75,7 @@ namespace TestApplication.Serilog
 
         public void OutParamLogs()
         {
-            var op = new OutParamClass();
+            OutParamClass op = new OutParamClass();
             string outString;
             op.SetParamString("in", out outString);
             int outInt;
@@ -99,7 +95,7 @@ namespace TestApplication.Serilog
 
         public void ReceivingStructures(MyClass myClass)
         {
-            var x = myClass.StringValue;
+            string x = myClass.StringValue;
         }
 
         public string NullInOut(string inp)

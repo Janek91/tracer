@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TestApplication
+﻿namespace TestApplication
 {
     public class StructParamClass
     {
@@ -15,7 +9,7 @@ namespace TestApplication
 
         public void RunStructs()
         {
-            var x = StructReturn();
+            MyStruct x = StructReturn();
             StructIn(x);
             StructOut(out x);
         }

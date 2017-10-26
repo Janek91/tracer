@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using Tracer.Fody.Tests.MockLoggers;
 
 namespace Tracer.Fody.Tests.TraceTests
@@ -37,7 +32,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::Main");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::MyStatic");
@@ -72,7 +67,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::Main");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Run");
@@ -110,7 +105,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(6);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::Main");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::MyStatic");
@@ -148,7 +143,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(6);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::Main");
             result.ElementAt(1).ShouldBeTraceEnterInto("First.MyClass::Run", "inp", "1");
@@ -185,7 +180,7 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::CallMe", "param", "Hello", "param2", "Hello2", "paraInt", "42");
             result.ElementAt(1).ShouldBeTraceLeaveWithExceptionFrom("First.MyClass::CallMe", "failed");

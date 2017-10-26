@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Tracer.Fody.Tests.MockLoggers
 {
@@ -20,7 +17,7 @@ namespace Tracer.Fody.Tests.MockLoggers
         {
             if (paramNames != null)
             {
-                var stringValues = paramValues.Select(val => val != null ? val.ToString() : null).ToArray();
+                string[] stringValues = paramValues.Select(val => val != null ? val.ToString() : null).ToArray();
                 MockLogManagerAdapter.TraceEnterCalled(TypePrettyName, methodInfo, paramNames, stringValues);
             }
             else
@@ -31,10 +28,10 @@ namespace Tracer.Fody.Tests.MockLoggers
 
         public void TraceLeave(string methodInfo, long startTicks, long endTicks, string[] paramNames, object[] paramValues)
         {
-            var numberOfTicks = endTicks - startTicks;
+            long numberOfTicks = endTicks - startTicks;
             if (paramNames != null)
             {
-                var stringValues = paramValues.Select(val => val != null ? val.ToString() : null).ToArray();
+                string[] stringValues = paramValues.Select(val => val != null ? val.ToString() : null).ToArray();
                 MockLogManagerAdapter.TraceLeaveCalled(TypePrettyName, methodInfo, numberOfTicks, paramNames, stringValues);
             }
             else
@@ -77,7 +74,8 @@ namespace Tracer.Fody.Tests.MockLoggers
             MockLogManagerAdapter.LogCalled(TypePrettyName, methodInfo, "MockLogException", new[] { message, exception.ToString() });
         }
 
-        public bool MockLogIsEnabled {
+        public bool MockLogIsEnabled
+        {
             get
             {
                 MockLogManagerAdapter.LogPropertyCalled(TypePrettyName, "MockLogIsEnabled");
@@ -89,10 +87,10 @@ namespace Tracer.Fody.Tests.MockLoggers
 
         private string TypePrettyName
         {
-            get 
+            get
             {
-                var sb = new StringBuilder();
-                if (!String.IsNullOrEmpty(_type.Namespace))
+                StringBuilder sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(_type.Namespace))
                 {
                     sb.Append(_type.Namespace);
                     sb.Append(".");

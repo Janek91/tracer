@@ -1,18 +1,14 @@
-﻿using System;
+﻿using log4net;
+using log4net.Core;
+using log4net.ObjectRenderer;
+using log4net.Util;
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using log4net;
-using log4net.Core;
-using log4net.Util;
 
 namespace Tracer.Log4Net.Adapters
 {
@@ -31,7 +27,7 @@ namespace Tracer.Log4Net.Adapters
             _typeName = PrettyFormat(type);
             _typeNamespace = type.Namespace;
             _logger = LogManager.GetLogger(type).Logger;
-            var config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
+            string config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
 
             if (config != null && config.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
@@ -50,59 +46,59 @@ namespace Tracer.Log4Net.Adapters
             if (_logger.IsEnabledFor(Level.Trace))
             {
                 string message;
-                var propDict = new PropertiesDictionary();
+                PropertiesDictionary propDict = new PropertiesDictionary();
                 propDict["trace"] = "ENTER";
 
                 if (paramNames != null)
                 {
-                    var parameters = new StringBuilder();
+                    StringBuilder parameters = new StringBuilder();
                     for (int i = 0; i < paramNames.Length; i++)
                     {
                         parameters.AppendFormat("{0}={1}", paramNames[i], _renderParameterMethod(paramValues[i], NullString));
                         if (i < paramNames.Length - 1) parameters.Append(", ");
                     }
-                    var argInfo = parameters.ToString();
+                    string argInfo = parameters.ToString();
                     propDict["arguments"] = argInfo;
-                    message = String.Format("Entered into {0} ({1}).", methodInfo, argInfo);
+                    message = string.Format("Entered into {0} ({1}).", methodInfo, argInfo);
                 }
                 else
                 {
-                    message = String.Format("Entered into {0}.", methodInfo);
+                    message = string.Format("Entered into {0}.", methodInfo);
                 }
                 Log(Level.Trace, methodInfo, message, null, propDict);
             }
         }
 
         public void TraceLeave(string methodInfo, long startTicks, long endTicks, string[] paramNames, object[] paramValues)
-        {  
-            if (_logger.IsEnabledFor(Level.Trace))  
-            {  
-                var propDict = new PropertiesDictionary();  
-                propDict["trace"] = "LEAVE";  
- 
-                string returnValue = null;  
-                if (paramNames != null)  
-                {  
-                    var parameters = new StringBuilder();  
-                    for (int i = 0; i<paramNames.Length; i++)  
-                    {  
-                        parameters.AppendFormat("{0}={1}", paramNames[i] ?? "$return", _renderParameterMethod(paramValues[i], NullString));  
-                        if (i<paramNames.Length - 1) parameters.Append(", ");  
-                    }  
-                    returnValue = parameters.ToString();  
-                    propDict["arguments"] = returnValue;  
-                }  
- 
-                var timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);  
-                propDict["startTicks"] = startTicks;  
-                propDict["endTicks"] = endTicks;  
-                propDict["timeTaken"] = timeTaken;  
- 
+        {
+            if (_logger.IsEnabledFor(Level.Trace))
+            {
+                PropertiesDictionary propDict = new PropertiesDictionary();
+                propDict["trace"] = "LEAVE";
+
+                string returnValue = null;
+                if (paramNames != null)
+                {
+                    StringBuilder parameters = new StringBuilder();
+                    for (int i = 0; i < paramNames.Length; i++)
+                    {
+                        parameters.AppendFormat("{0}={1}", paramNames[i] ?? "$return", _renderParameterMethod(paramValues[i], NullString));
+                        if (i < paramNames.Length - 1) parameters.Append(", ");
+                    }
+                    returnValue = parameters.ToString();
+                    propDict["arguments"] = returnValue;
+                }
+
+                double timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
+                propDict["startTicks"] = startTicks;
+                propDict["endTicks"] = endTicks;
+                propDict["timeTaken"] = timeTaken;
+
                 Log(Level.Trace, methodInfo,
-                    String.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.",
-                        timeTaken, methodInfo, returnValue), null, propDict);  
-            }  
-        }  
+                    string.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.",
+                        timeTaken, methodInfo, returnValue), null, propDict);
+            }
+        }
 
         #endregion
 
@@ -128,7 +124,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Debug))
             {
-                Log(Level.Debug, methodInfo, String.Format(format, args));
+                Log(Level.Debug, methodInfo, string.Format(format, args));
             }
         }
 
@@ -136,7 +132,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Debug))
             {
-                Log(Level.Debug, methodInfo, String.Format(format, arg0));
+                Log(Level.Debug, methodInfo, string.Format(format, arg0));
             }
         }
 
@@ -144,7 +140,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Debug))
             {
-                Log(Level.Debug, methodInfo, String.Format(format, arg0, arg1));
+                Log(Level.Debug, methodInfo, string.Format(format, arg0, arg1));
             }
         }
 
@@ -152,7 +148,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Debug))
             {
-                Log(Level.Debug, methodInfo, String.Format(format, arg0, arg1, arg2));
+                Log(Level.Debug, methodInfo, string.Format(format, arg0, arg1, arg2));
             }
         }
 
@@ -160,7 +156,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Debug))
             {
-                Log(Level.Debug, methodInfo, String.Format(provider, format, args));
+                Log(Level.Debug, methodInfo, string.Format(provider, format, args));
             }
         }
 
@@ -184,7 +180,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Info))
             {
-                Log(Level.Info, methodInfo, String.Format(format, args));
+                Log(Level.Info, methodInfo, string.Format(format, args));
             }
         }
 
@@ -192,7 +188,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Info))
             {
-                Log(Level.Info, methodInfo, String.Format(format, arg0));
+                Log(Level.Info, methodInfo, string.Format(format, arg0));
             }
         }
 
@@ -200,7 +196,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Info))
             {
-                Log(Level.Info, methodInfo, String.Format(format, arg0, arg1));
+                Log(Level.Info, methodInfo, string.Format(format, arg0, arg1));
             }
         }
 
@@ -208,7 +204,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Info))
             {
-                Log(Level.Info, methodInfo, String.Format(format, arg0, arg1, arg2));
+                Log(Level.Info, methodInfo, string.Format(format, arg0, arg1, arg2));
             }
         }
 
@@ -216,7 +212,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Info))
             {
-                Log(Level.Info, methodInfo, String.Format(provider, format, args));
+                Log(Level.Info, methodInfo, string.Format(provider, format, args));
             }
         }
 
@@ -240,7 +236,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Warn))
             {
-                Log(Level.Warn, methodInfo, String.Format(format, args));
+                Log(Level.Warn, methodInfo, string.Format(format, args));
             }
         }
 
@@ -248,7 +244,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Warn))
             {
-                Log(Level.Warn, methodInfo, String.Format(format, arg0));
+                Log(Level.Warn, methodInfo, string.Format(format, arg0));
             }
         }
 
@@ -256,7 +252,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Warn))
             {
-                Log(Level.Warn, methodInfo, String.Format(format, arg0, arg1));
+                Log(Level.Warn, methodInfo, string.Format(format, arg0, arg1));
             }
         }
 
@@ -264,7 +260,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Warn))
             {
-                Log(Level.Warn, methodInfo, String.Format(format, arg0, arg1, arg2));
+                Log(Level.Warn, methodInfo, string.Format(format, arg0, arg1, arg2));
             }
         }
 
@@ -272,7 +268,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Warn))
             {
-                Log(Level.Warn, methodInfo, String.Format(provider, format, args));
+                Log(Level.Warn, methodInfo, string.Format(provider, format, args));
             }
         }
 
@@ -296,7 +292,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Error))
             {
-                Log(Level.Error, methodInfo, String.Format(format, args));
+                Log(Level.Error, methodInfo, string.Format(format, args));
             }
         }
 
@@ -304,7 +300,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Error))
             {
-                Log(Level.Error, methodInfo, String.Format(format, arg0));
+                Log(Level.Error, methodInfo, string.Format(format, arg0));
             }
         }
 
@@ -312,7 +308,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Error))
             {
-                Log(Level.Error, methodInfo, String.Format(format, arg0, arg1));
+                Log(Level.Error, methodInfo, string.Format(format, arg0, arg1));
             }
         }
 
@@ -320,7 +316,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Error))
             {
-                Log(Level.Error, methodInfo, String.Format(format, arg0, arg1, arg2));
+                Log(Level.Error, methodInfo, string.Format(format, arg0, arg1, arg2));
             }
         }
 
@@ -328,7 +324,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Error))
             {
-                Log(Level.Error, methodInfo, String.Format(provider, format, args));
+                Log(Level.Error, methodInfo, string.Format(provider, format, args));
             }
         }
 
@@ -352,7 +348,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Fatal))
             {
-                Log(Level.Fatal, methodInfo, String.Format(format, args));
+                Log(Level.Fatal, methodInfo, string.Format(format, args));
             }
         }
 
@@ -360,7 +356,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Fatal))
             {
-                Log(Level.Fatal, methodInfo, String.Format(format, arg0));
+                Log(Level.Fatal, methodInfo, string.Format(format, arg0));
             }
         }
 
@@ -368,7 +364,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Fatal))
             {
-                Log(Level.Fatal, methodInfo, String.Format(format, arg0, arg1));
+                Log(Level.Fatal, methodInfo, string.Format(format, arg0, arg1));
             }
         }
 
@@ -376,7 +372,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Fatal))
             {
-                Log(Level.Fatal, methodInfo, String.Format(format, arg0, arg1, arg2));
+                Log(Level.Fatal, methodInfo, string.Format(format, arg0, arg1, arg2));
             }
         }
 
@@ -384,7 +380,7 @@ namespace Tracer.Log4Net.Adapters
         {
             if (_logger.IsEnabledFor(Level.Fatal))
             {
-                Log(Level.Fatal, methodInfo, String.Format(provider, format, args));
+                Log(Level.Fatal, methodInfo, string.Format(provider, format, args));
             }
         }
 
@@ -417,7 +413,7 @@ namespace Tracer.Log4Net.Adapters
 
         private void Log(Level level, string methodInfo, object message, Exception exception = null, PropertiesDictionary properties = null)
         {
-            var eventData = new LoggingEventData()
+            LoggingEventData eventData = new LoggingEventData()
             {
                 LocationInfo = new LocationInfo(_typeName, methodInfo, "", ""),
                 Level = level,
@@ -440,7 +436,7 @@ namespace Tracer.Log4Net.Adapters
                 return stringRepresentationOfNull;
             }
 
-            var str = message as string;
+            string str = message as string;
             if (str != null)
             {
                 return str;
@@ -449,11 +445,11 @@ namespace Tracer.Log4Net.Adapters
             if (_logger.Repository != null)
             {
                 //try to escape the default renderer
-                var renderer = _logger.Repository.RendererMap.Get(message);
+                IObjectRenderer renderer = _logger.Repository.RendererMap.Get(message);
                 if (renderer != null && renderer != _logger.Repository.RendererMap.DefaultRenderer)
                 {
 
-                    var stringWriter = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+                    StringWriter stringWriter = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
                     renderer.RenderObject(_logger.Repository.RendererMap, message, stringWriter);
                     return stringWriter.ToString();
                 }
@@ -476,8 +472,8 @@ namespace Tracer.Log4Net.Adapters
             }
             else if (message is IEnumerator && _logger.Repository != null)
             {
-                var retVal = _logger.Repository.RendererMap.FindAndRender(message);
-                var enumerable = (IEnumerator)message;
+                string retVal = _logger.Repository.RendererMap.FindAndRender(message);
+                IEnumerator enumerable = (IEnumerator)message;
                 enumerable.Reset();
                 return retVal;
             }
@@ -499,7 +495,7 @@ namespace Tracer.Log4Net.Adapters
 
         private static string PrettyFormat(Type type)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (type.IsGenericType)
             {
                 sb.Append(type.Name.Remove(type.Name.IndexOf('`')));

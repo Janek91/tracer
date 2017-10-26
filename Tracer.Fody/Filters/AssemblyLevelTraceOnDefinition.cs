@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Mono.Cecil;
+using System;
 using System.Xml.Linq;
-using Mono.Cecil;
 
 namespace Tracer.Fody.Filters
 {
@@ -25,10 +25,10 @@ namespace Tracer.Fody.Filters
 
         private static TraceTargetVisibility ParseTraceTargetVisibility(XElement element, string attributeName)
         {
-            var attribute = element.Attribute(attributeName);
+            XAttribute attribute = element.Attribute(attributeName);
             if (attribute == null)
             {
-                throw new ApplicationException(String.Format("Tracer: TraceOn config element missing attribute '{0}'.", attributeName));
+                throw new ApplicationException(string.Format("Tracer: TraceOn config element missing attribute '{0}'.", attributeName));
             }
 
             switch (attribute.Value.ToLower())
@@ -39,7 +39,7 @@ namespace Tracer.Fody.Filters
                 case "private": return TraceTargetVisibility.All;
                 case "none": return TraceTargetVisibility.None;
                 default:
-                    throw new ApplicationException(String.Format("Tracer: TraceOn config element attribute '{0}' has an invalid value '{1}'.", attributeName, attribute.Value));
+                    throw new ApplicationException(string.Format("Tracer: TraceOn config element attribute '{0}' has an invalid value '{1}'.", attributeName, attribute.Value));
             }
         }
 
@@ -57,9 +57,9 @@ namespace Tracer.Fody.Filters
         {
             if (base.IsMatching(methodDefinition))
             {
-                var declaringType = methodDefinition.DeclaringType;
-                var typeVisibility = VisibilityHelper.GetTypeVisibilityLevel(declaringType);
-                var methodVisibilityLevel = VisibilityHelper.GetMethodVisibilityLevel(methodDefinition);
+                TypeDefinition declaringType = methodDefinition.DeclaringType;
+                VisibilityLevel typeVisibility = VisibilityHelper.GetTypeVisibilityLevel(declaringType);
+                VisibilityLevel methodVisibilityLevel = VisibilityHelper.GetMethodVisibilityLevel(methodDefinition);
 
                 //check type visibility
                 if ((int)typeVisibility > (int)_targetClass) return false;
@@ -80,15 +80,15 @@ namespace Tracer.Fody.Filters
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((AssemblyLevelTraceOnDefinition) obj);
+            if (obj.GetType() != GetType()) return false;
+            return Equals((AssemblyLevelTraceOnDefinition)obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return ((int) _targetClass*397) ^ (int) _targetMethod;
+                return ((int)_targetClass * 397) ^ (int)_targetMethod;
             }
         }
 

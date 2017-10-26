@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 using Tracer.Fody.Helpers;
@@ -71,7 +68,7 @@ namespace Tracer.Fody.Weavers
         {
             get
             {
-                var genericMethodRef = _methodReference as GenericInstanceMethod;
+                GenericInstanceMethod genericMethodRef = _methodReference as GenericInstanceMethod;
                 if (genericMethodRef == null) return new Collection<TypeReference>();
                 return genericMethodRef.GenericArguments;
             }

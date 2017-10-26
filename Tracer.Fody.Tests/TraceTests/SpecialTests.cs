@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
+using System;
+using System.Reflection;
 using Tracer.Fody.Filters;
 using Tracer.Fody.Tests.MockLoggers;
 
@@ -34,12 +30,12 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-            var assemblyPath = Compile(code, "testasm", new[] { testDllLocation.AbsolutePath });
+            Uri testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            string assemblyPath = Compile(code, "testasm", new[] { testDllLocation.AbsolutePath });
             Rewrite(assemblyPath, new AllTraceLoggingFilter());
             Rewrite(assemblyPath, new AllTraceLoggingFilter());
 
-            var result = this.RunCode(assemblyPath, "First.MyClass", "Main");
+            MockLogResult result = RunCode(assemblyPath, "First.MyClass", "Main");
 
             result.Count.Should().Be(2);
         }
@@ -76,9 +72,9 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All,  TraceTargetVisibility.All, 
+            AssemblyLevelTraceOnDefinition def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
                 TraceTargetVisibility.Public);
-            var result = this.RunTest(code, new DefaultFilter(new [] { def }), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
             result.Count.Should().Be(0);
         }
 
@@ -114,9 +110,9 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
+            AssemblyLevelTraceOnDefinition def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
                 TraceTargetVisibility.Public);
-            var result = this.RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
             result.Count.Should().Be(0);
         }
 
@@ -157,9 +153,9 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
+            AssemblyLevelTraceOnDefinition def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
                 TraceTargetVisibility.All);
-            var result = this.RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
             result.Count.Should().Be(0);
         }
 
@@ -202,9 +198,9 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
+            AssemblyLevelTraceOnDefinition def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.All,
                 TraceTargetVisibility.All);
-            var result = this.RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
             result.Count.Should().Be(0);
         }
 
@@ -257,9 +253,9 @@ namespace Tracer.Fody.Tests.TraceTests
                 }
             ";
 
-            var def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.Public,
+            AssemblyLevelTraceOnDefinition def = new AssemblyLevelTraceOnDefinition(NamespaceScope.All, TraceTargetVisibility.Public,
                 TraceTargetVisibility.Public);
-            var result = this.RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new DefaultFilter(new[] { def }), "First.MyClass::Main");
             result.Count.Should().Be(6);
         }
     }

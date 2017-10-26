@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Mono.Cecil;
+using Mono.Cecil.Rocks;
+using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Mono.Cecil;
-using Mono.Cecil.Rocks;
 using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
@@ -32,35 +28,35 @@ namespace Tracer.Fody.Weavers
         /// </summary>
         /// <param name="configuration">Configuration information</param>
         /// <param name="moduleDefinition">Target module</param>
-       
+
         public static void Execute(TraceLoggingConfiguration configuration, ModuleDefinition moduleDefinition)
         {
             try
             {
                 WeavingLog.LogInfo("Tracer: Starts weaving.");
-                var timer = Stopwatch.StartNew();
-                var weaver = new ModuleLevelWeaver(configuration, moduleDefinition);
+                Stopwatch timer = Stopwatch.StartNew();
+                ModuleLevelWeaver weaver = new ModuleLevelWeaver(configuration, moduleDefinition);
                 weaver.InternalExecute();
                 timer.Stop();
-                WeavingLog.LogInfo(String.Format("Tracer: Weaving done in {0} ms.", timer.ElapsedMilliseconds));
+                WeavingLog.LogInfo(string.Format("Tracer: Weaving done in {0} ms.", timer.ElapsedMilliseconds));
             }
             catch (Exception ex)
             {
-                WeavingLog.LogError(String.Format("Tracer: Weaving failed with {0}", ex));
+                WeavingLog.LogError(string.Format("Tracer: Weaving failed with {0}", ex));
                 throw;
             }
         }
 
         private void InternalExecute()
         {
-            var typeReferenceProvider = new TypeReferenceProvider(_configuration, this, _moduleDefinition);
-            var methodReferenceProvider = new MethodReferenceProvider(typeReferenceProvider, _moduleDefinition);
+            TypeReferenceProvider typeReferenceProvider = new TypeReferenceProvider(_configuration, this, _moduleDefinition);
+            MethodReferenceProvider methodReferenceProvider = new MethodReferenceProvider(typeReferenceProvider, _moduleDefinition);
 
-            var factory = new TypeWeaverFactory(_configuration.Filter, typeReferenceProvider, methodReferenceProvider, _configuration.ShouldTraceConstructors,
+            TypeWeaverFactory factory = new TypeWeaverFactory(_configuration.Filter, typeReferenceProvider, methodReferenceProvider, _configuration.ShouldTraceConstructors,
                 _configuration.ShouldTraceProperties);
-            foreach (var type in _moduleDefinition.GetAllTypes())
+            foreach (TypeDefinition type in _moduleDefinition.GetAllTypes())
             {
-                var weaver = factory.Create(type);
+                TypeWeaver weaver = factory.Create(type);
                 weaver.Execute();
             }
         }
@@ -72,7 +68,7 @@ namespace Tracer.Fody.Weavers
             if (_loggerScope == null)
             {
                 //Check if reference to adapter assembly is present. If not, add it (we only look for the name, we assume that different versions are backward compatible)
-                var loggerReference = _moduleDefinition.AssemblyReferences.FirstOrDefault(assRef => assRef.Name.Equals(_configuration.AssemblyNameReference.Name));
+                AssemblyNameReference loggerReference = _moduleDefinition.AssemblyReferences.FirstOrDefault(assRef => assRef.Name.Equals(_configuration.AssemblyNameReference.Name));
                 if (loggerReference == null)
                 {
                     loggerReference = _configuration.AssemblyNameReference;

@@ -1,11 +1,9 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using NLog;
-using NLog.Fluent;
 
 namespace Tracer.NLog.Adapters
 {
@@ -42,24 +40,24 @@ namespace Tracer.NLog.Adapters
             if (_logger.IsTraceEnabled)
             {
                 string message;
-                var propDict = new Dictionary<string, object>();
+                Dictionary<string, object> propDict = new Dictionary<string, object>();
                 propDict["trace"] = "ENTER";
 
                 if (paramNames != null)
                 {
-                    var parameters = new StringBuilder();
+                    StringBuilder parameters = new StringBuilder();
                     for (int i = 0; i < paramNames.Length; i++)
                     {
                         parameters.AppendFormat("{0}={1}", paramNames[i], GetRenderedFormat(paramValues[i], NullString));
                         if (i < paramNames.Length - 1) parameters.Append(", ");
                     }
-                    var argInfo = parameters.ToString();
+                    string argInfo = parameters.ToString();
                     propDict["arguments"] = argInfo;
-                    message = String.Format("Entered into {0} ({1}).", methodInfo, argInfo);
+                    message = string.Format("Entered into {0} ({1}).", methodInfo, argInfo);
                 }
                 else
                 {
-                    message = String.Format("Entered into {0}.", methodInfo);
+                    message = string.Format("Entered into {0}.", methodInfo);
                 }
                 LogTrace(LogLevel.Trace, methodInfo, message, null, propDict);
             }
@@ -69,13 +67,13 @@ namespace Tracer.NLog.Adapters
         {
             if (_logger.IsTraceEnabled)
             {
-                var propDict = new Dictionary<string, object>();
+                Dictionary<string, object> propDict = new Dictionary<string, object>();
                 propDict["trace"] = "LEAVE";
 
                 string returnValue = null;
                 if (paramNames != null)
                 {
-                    var parameters = new StringBuilder();
+                    StringBuilder parameters = new StringBuilder();
                     for (int i = 0; i < paramNames.Length; i++)
                     {
                         parameters.AppendFormat("{0}={1}", paramNames[i] ?? "$return", GetRenderedFormat(paramValues[i], NullString));
@@ -85,13 +83,13 @@ namespace Tracer.NLog.Adapters
                     propDict["arguments"] = returnValue;
                 }
 
-                var timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
+                double timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
                 propDict["startTicks"] = startTicks;
                 propDict["endTicks"] = endTicks;
                 propDict["timeTaken"] = timeTaken;
 
                 LogTrace(LogLevel.Trace, methodInfo,
-                    String.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.",
+                    string.Format("Returned from {1} ({2}). Time taken: {0:0.00} ms.",
                         timeTaken, methodInfo, returnValue), null, propDict);
             }
         }
@@ -99,7 +97,7 @@ namespace Tracer.NLog.Adapters
         private static void AddGenericPrettyFormat(StringBuilder sb, Type[] genericArgumentTypes)
         {
             sb.Append("<");
-            for (var i = 0; i < genericArgumentTypes.Length; i++)
+            for (int i = 0; i < genericArgumentTypes.Length; i++)
             {
                 sb.Append(genericArgumentTypes[i].Name);
                 if (i < genericArgumentTypes.Length - 1) sb.Append(", ");
@@ -115,7 +113,7 @@ namespace Tracer.NLog.Adapters
 
         private static string PrettyFormat(Type type)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (type.IsGenericType)
             {
                 sb.Append(type.Name.Remove(type.Name.IndexOf('`')));
@@ -139,7 +137,7 @@ namespace Tracer.NLog.Adapters
 
         private void LogTrace(LogLevel level, string methodInfo, string message, Exception exception = null, Dictionary<string, object> properties = null)
         {
-            var eventData = new LogEventInfo();
+            LogEventInfo eventData = new LogEventInfo();
             eventData.Exception = exception;
             eventData.Message = message;
             eventData.Level = level;
@@ -150,7 +148,7 @@ namespace Tracer.NLog.Adapters
 
             if (properties != null)
             {
-                foreach (var property in properties)
+                foreach (KeyValuePair<string, object> property in properties)
                     eventData.Properties.Add(property.Key, property.Value);
             }
 

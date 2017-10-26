@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
@@ -27,7 +23,7 @@ namespace TestApplication.Serilog
                 .CreateLogger();
             Console.WriteLine("Starting application...");
 
-            var myApp = new MyApplication();
+            MyApplication myApp = new MyApplication();
             myApp.Run();
             Console.WriteLine("Press Enter to stop");
             Console.ReadLine();

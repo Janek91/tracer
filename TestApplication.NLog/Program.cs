@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NLog;
+﻿using NLog;
 using NLog.Config;
 using NLog.Targets;
 
 namespace TestApplication.NLog
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var config = new LoggingConfiguration();
+            LoggingConfiguration config = new LoggingConfiguration();
 
-            var fileTarget = new FileTarget();
+            FileTarget fileTarget = new FileTarget();
             fileTarget.FileName = "c:\\ApplicationLogs\\log_nlog.txt";
             fileTarget.Layout = "${time}${logger}[${threadid}][${level}] ${event-properties:item=TypeInfo}.${event-properties:item=MethodInfo} - ${message}";
 
@@ -23,7 +19,7 @@ namespace TestApplication.NLog
 
             LogManager.Configuration = config;
 
-            var app = new MyApplication();
+            MyApplication app = new MyApplication();
             app.Run();
         }
     }

@@ -2,13 +2,11 @@
 
 using System;
 using System.CodeDom.Compiler;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
@@ -30,7 +28,7 @@ namespace Tracer.Fody.Tests
         [SetUp]
         public void Setup()
         {
-            var tempFolderBase = Directory.Exists(CustomTempFolder) ? CustomTempFolder : Path.GetTempPath();
+            string tempFolderBase = Directory.Exists(CustomTempFolder) ? CustomTempFolder : Path.GetTempPath();
 
 #if NO_RANDOM_FOLDERS
             _tempFolder = tempFolderBase;
@@ -60,11 +58,11 @@ namespace Tracer.Fody.Tests
         /// </summary>
         protected string Compile(string source, string assemblyName, string[] additonalAssemblies)
         {
-            var destPath = GetDestinationFilePath(assemblyName);
+            string destPath = GetDestinationFilePath(assemblyName);
 
-            using (var provider = new CSharpCodeProvider())
+            using (CSharpCodeProvider provider = new CSharpCodeProvider())
             {
-                var parameters = new CompilerParameters { OutputAssembly = destPath, IncludeDebugInformation = true };
+                CompilerParameters parameters = new CompilerParameters { OutputAssembly = destPath, IncludeDebugInformation = true };
 
                 parameters.ReferencedAssemblies.Add("System.dll");
                 parameters.ReferencedAssemblies.Add("System.Core.dll");
@@ -72,21 +70,21 @@ namespace Tracer.Fody.Tests
                 if (additonalAssemblies != null)
                     parameters.ReferencedAssemblies.AddRange(additonalAssemblies);
 
-                var results = provider.CompileAssemblyFromSource(parameters, source);
+                CompilerResults results = provider.CompileAssemblyFromSource(parameters, source);
 
                 if (results.Errors.HasErrors)
                 {
-                    var sb = new StringBuilder();
+                    StringBuilder sb = new StringBuilder();
 
                     foreach (CompilerError error in results.Errors)
                     {
-                        sb.AppendLine(String.Format("Error ({0}): {1}", error.ErrorNumber, error.ErrorText));
+                        sb.AppendLine(string.Format("Error ({0}): {1}", error.ErrorNumber, error.ErrorText));
                     }
 
                     throw new InvalidOperationException(sb.ToString());
                 }
 
-                Debug.Write(String.Format("Dll compiled to {0}", destPath));
+                Debug.Write(string.Format("Dll compiled to {0}", destPath));
 
                 return destPath;
             }
@@ -95,9 +93,9 @@ namespace Tracer.Fody.Tests
         protected void Rewrite(string assemblyPath, ITraceLoggingFilter filter, bool traceConstructors = false)
         {
             //Set-up log adapter to our mock 
-            var assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetExecutingAssembly();
 
-            var config = TraceLoggingConfiguration.New
+            TraceLoggingConfiguration.TraceLoggingConfigurationBuilder config = TraceLoggingConfiguration.New
                 .WithFilter(filter)
                 .WithAdapterAssembly(assembly.GetName().FullName)
                 .WithLogManager(typeof(MockLogManagerAdapter).FullName)
@@ -111,14 +109,14 @@ namespace Tracer.Fody.Tests
 
         protected MockLogResult RunTest(string source, ITraceLoggingFilter filter, string staticEntryPoint, bool shouldTraceConstructors = false)
         {
-            var splitEntry = staticEntryPoint.Split(new [] { "::" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] splitEntry = staticEntryPoint.Split(new[] { "::" }, StringSplitOptions.RemoveEmptyEntries);
             if (splitEntry.Length != 2) throw new ApplicationException("Static entry point must be in a form Namesp.Namesp2.Class::Method");
-            var entryClass = splitEntry[0];
-            var entryMethod = splitEntry[1];
+            string entryClass = splitEntry[0];
+            string entryMethod = splitEntry[1];
 
-            var testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            Uri testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
 
-            var assemblyPath = Compile(source, "testasm", new []{ testDllLocation.AbsolutePath });
+            string assemblyPath = Compile(source, "testasm", new[] { testDllLocation.AbsolutePath });
             Rewrite(assemblyPath, filter, shouldTraceConstructors);
 
             //----
@@ -127,12 +125,12 @@ namespace Tracer.Fody.Tests
 
         protected MockLogResult RunCode(string assemblyPath, string entryClass, string entryMethod)
         {
-            var currentSetup = AppDomain.CurrentDomain.SetupInformation;
-            var appDomain = AppDomain.CreateDomain("testrun", null, currentSetup);
+            AppDomainSetup currentSetup = AppDomain.CurrentDomain.SetupInformation;
+            AppDomain appDomain = AppDomain.CreateDomain("testrun", null, currentSetup);
             try
             {
-                var remote = (Worker)appDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName, "Tracer.Fody.Tests.TestBase+Worker");
-                var result = remote.Run(assemblyPath, entryClass, entryMethod, typeof(MockLogManagerAdapter).FullName);
+                Worker remote = (Worker)appDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName, "Tracer.Fody.Tests.TestBase+Worker");
+                MockLogResult result = remote.Run(assemblyPath, entryClass, entryMethod, typeof(MockLogManagerAdapter).FullName);
                 return result;
             }
             finally
@@ -143,10 +141,10 @@ namespace Tracer.Fody.Tests
 
         protected MethodDefinition GetMethodDefinition(string source, string methodName)
         {
-            var testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-            var assemblyPath = Compile(source, "testasm", new[] { testDllLocation.AbsolutePath });
+            Uri testDllLocation = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            string assemblyPath = Compile(source, "testasm", new[] { testDllLocation.AbsolutePath });
 
-            using (var moduleDef = ModuleDefinition.ReadModule(assemblyPath))
+            using (ModuleDefinition moduleDef = ModuleDefinition.ReadModule(assemblyPath))
             {
                 return moduleDef.GetAllTypes().SelectMany(typeDef => typeDef.Methods)
                     .FirstOrDefault(methodDef => methodDef.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
@@ -158,13 +156,13 @@ namespace Tracer.Fody.Tests
         {
             public MockLogResult Run(string assemblyPath, string mainClass, string mainMethod, string logManagerTypeName)
             {
-                var asm = Assembly.LoadFile(assemblyPath);
-                var type = asm.GetType(mainClass);
-                var mainMethodInfo = type.GetMethod(mainMethod, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                var numberOfParameters = mainMethodInfo.GetParameters().Length;
+                Assembly asm = Assembly.LoadFile(assemblyPath);
+                Type type = asm.GetType(mainClass);
+                MethodInfo mainMethodInfo = type.GetMethod(mainMethod, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                int numberOfParameters = mainMethodInfo.GetParameters().Length;
                 mainMethodInfo.Invoke(null, new object[numberOfParameters]);
-                var logManagerType = Type.GetType(logManagerTypeName);
-                var getMockResultMethod = logManagerType.GetMethod("GetResult", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                Type logManagerType = Type.GetType(logManagerTypeName);
+                MethodInfo getMockResultMethod = logManagerType.GetMethod("GetResult", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 return (MockLogResult)getMockResultMethod.Invoke(null, new object[0]);
             }
 

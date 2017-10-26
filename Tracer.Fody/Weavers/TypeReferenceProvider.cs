@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Mono.Cecil;
 
@@ -93,8 +89,8 @@ namespace Tracer.Fody.Weavers
         {
             get
             {
-                var loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
-                var logger = _configuration.Logger; 
+                IMetadataScope loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
+                TraceLoggingConfiguration.TypeName logger = _configuration.Logger; 
                 return new TypeReference(logger.Namespace, logger.Name, _moduleDefinition, loggerScope); 
             }
         }
@@ -103,8 +99,8 @@ namespace Tracer.Fody.Weavers
         {
             get
             {
-                var loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
-                var staticLogger = _configuration.StaticLogger;
+                IMetadataScope loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
+                TraceLoggingConfiguration.TypeName staticLogger = _configuration.StaticLogger;
                 return new TypeReference(staticLogger.Namespace, staticLogger.Name, _moduleDefinition, loggerScope); 
             }
         }
@@ -113,8 +109,8 @@ namespace Tracer.Fody.Weavers
         {
             get
             {
-                var loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
-                var logManager = _configuration.LogMannager;
+                IMetadataScope loggerScope = _loggerAdapterMetadataScopeProvider.GetLoggerAdapterMetadataScope();
+                TraceLoggingConfiguration.TypeName logManager = _configuration.LogMannager;
                 return new TypeReference(logManager.Namespace, logManager.Name, _moduleDefinition, loggerScope);
             }
         }

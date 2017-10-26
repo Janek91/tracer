@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Tracer.Fody.Filters
 {
@@ -10,7 +8,7 @@ namespace Tracer.Fody.Filters
     /// </summary>
     internal class NamespaceScope : IComparable<NamespaceScope>
     {
-        public static NamespaceScope All = new NamespaceScope(String.Empty, MatchMode.SelfAndChildren); //empty namespace means all match
+        public static NamespaceScope All = new NamespaceScope(string.Empty, MatchMode.SelfAndChildren); //empty namespace means all match
 
         private enum MatchMode
         {
@@ -30,8 +28,8 @@ namespace Tracer.Fody.Filters
 
         public static NamespaceScope Parse(string inp)
         {
-            var namespc = String.Empty;
-            var matchMode = MatchMode.ExactMatch;
+            string namespc = string.Empty;
+            MatchMode matchMode = MatchMode.ExactMatch;
             if (inp.EndsWith(".*"))
             {
                 matchMode = MatchMode.OnlyChildren;
@@ -55,19 +53,19 @@ namespace Tracer.Fody.Filters
                 namespc = inp;
             }
 
-            if (String.IsNullOrWhiteSpace(namespc))
+            if (string.IsNullOrWhiteSpace(namespc))
             {
-                throw new ApplicationException("Namespace cannot be empty if specified.");    
+                throw new ApplicationException("Namespace cannot be empty if specified.");
             }
-            
+
             return new NamespaceScope(namespc, matchMode);
         }
 
         public int CompareTo(NamespaceScope other)
         {
             //for ordering from more specific to least specific
-            var dotCnt = _namespace.Count(chr => chr == '.');
-            var otherDotCnt = other._namespace.Count(chr => chr == '.');
+            int dotCnt = _namespace.Count(chr => chr == '.');
+            int otherDotCnt = other._namespace.Count(chr => chr == '.');
 
             if (dotCnt != otherDotCnt)
             {
@@ -80,32 +78,32 @@ namespace Tracer.Fody.Filters
 
         public override string ToString()
         {
-            return String.Format("{0}{1}", _namespace, _matchMode == MatchMode.OnlyChildren ? ".*" : (_matchMode == MatchMode.SelfAndChildren ? "+*" : ""));
+            return string.Format("{0}{1}", _namespace, _matchMode == MatchMode.OnlyChildren ? ".*" : (_matchMode == MatchMode.SelfAndChildren ? "+*" : ""));
         }
 
         public bool IsMatching(string ns)
         {
             //check for ALL
-            if (String.IsNullOrEmpty(_namespace)) return true;
+            if (string.IsNullOrEmpty(_namespace)) return true;
 
             switch (_matchMode)
             {
                 case MatchMode.ExactMatch:
-                {
-                    return String.Equals(_namespace, ns, StringComparison.OrdinalIgnoreCase);
-                }          
+                    {
+                        return string.Equals(_namespace, ns, StringComparison.OrdinalIgnoreCase);
+                    }
                 case MatchMode.OnlyChildren:
-                {
-                    if (!ns.StartsWith(_namespace, StringComparison.OrdinalIgnoreCase)) return false;
-                    if (ns.Length == _namespace.Length) return false;
-                    return ns[_namespace.Length] == '.';
-                }    
+                    {
+                        if (!ns.StartsWith(_namespace, StringComparison.OrdinalIgnoreCase)) return false;
+                        if (ns.Length == _namespace.Length) return false;
+                        return ns[_namespace.Length] == '.';
+                    }
                 case MatchMode.SelfAndChildren:
-                {
-                    if (!ns.StartsWith(_namespace, StringComparison.OrdinalIgnoreCase)) return false;
-                    if (ns.Length == _namespace.Length) return true;
-                    return ns[_namespace.Length] == '.';
-                }
+                    {
+                        if (!ns.StartsWith(_namespace, StringComparison.OrdinalIgnoreCase)) return false;
+                        if (ns.Length == _namespace.Length) return true;
+                        return ns[_namespace.Length] == '.';
+                    }
             }
             throw new ApplicationException("Unknown match mode");
         }

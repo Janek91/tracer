@@ -16,7 +16,7 @@ namespace Tracer.NLog4Net.Adapters
         public LoggerAdapter(Type type)
         {
             _logger = LogManager.GetLogger(type.Name);
-            var config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
+            string config = ConfigurationManager.AppSettings["LogUseSafeParameterRendering"];
 
             if ((config != null) && config.Equals("true", StringComparison.OrdinalIgnoreCase))
                 _renderParameterMethod = GetSafeRenderedFormat;
@@ -264,18 +264,18 @@ namespace Tracer.NLog4Net.Adapters
             if (_logger.IsTraceEnabled)
             {
                 string message;
-                var propDict = new Dictionary<string, object>();
+                Dictionary<string, object> propDict = new Dictionary<string, object>();
                 propDict["trace"] = "ENTER";
 
                 if (paramNames != null)
                 {
-                    var parameters = new StringBuilder();
-                    for (var i = 0; i < paramNames.Length; i++)
+                    StringBuilder parameters = new StringBuilder();
+                    for (int i = 0; i < paramNames.Length; i++)
                     {
                         parameters.AppendFormat("{0}={1}", paramNames[i], _renderParameterMethod(paramValues[i], NullString));
                         if (i < paramNames.Length - 1) parameters.Append(", ");
                     }
-                    var argInfo = parameters.ToString();
+                    string argInfo = parameters.ToString();
                     propDict["arguments"] = argInfo;
                     message = string.Format("Entered into {0} ({1}).", methodInfo, argInfo);
                 }
@@ -291,14 +291,14 @@ namespace Tracer.NLog4Net.Adapters
         {
             if (_logger.IsTraceEnabled)
             {
-                var propDict = new Dictionary<string, object>();
+                Dictionary<string, object> propDict = new Dictionary<string, object>();
                 propDict["trace"] = "LEAVE";
 
                 string returnValue = null;
                 if (paramNames != null)
                 {
-                    var parameters = new StringBuilder();
-                    for (var i = 0; i < paramNames.Length; i++)
+                    StringBuilder parameters = new StringBuilder();
+                    for (int i = 0; i < paramNames.Length; i++)
                     {
                         parameters.AppendFormat("{0}={1}", paramNames[i] ?? "$return", _renderParameterMethod(paramValues[i], NullString));
                         if (i < paramNames.Length - 1) parameters.Append(", ");
@@ -307,7 +307,7 @@ namespace Tracer.NLog4Net.Adapters
                     propDict["arguments"] = returnValue;
                 }
 
-                var timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
+                double timeTaken = ConvertTicksToMilliseconds(endTicks - startTicks);
                 propDict["startTicks"] = startTicks;
                 propDict["endTicks"] = endTicks;
                 propDict["timeTaken"] = timeTaken;
@@ -319,7 +319,7 @@ namespace Tracer.NLog4Net.Adapters
         private static void AddGenericPrettyFormat(StringBuilder sb, Type[] genericArgumentTypes)
         {
             sb.Append("<");
-            for (var i = 0; i < genericArgumentTypes.Length; i++)
+            for (int i = 0; i < genericArgumentTypes.Length; i++)
             {
                 sb.Append(genericArgumentTypes[i].Name);
                 if (i < genericArgumentTypes.Length - 1) sb.Append(", ");
@@ -335,7 +335,7 @@ namespace Tracer.NLog4Net.Adapters
 
         private static string PrettyFormat(Type type)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (type.IsGenericType)
             {
                 sb.Append(type.Name.Remove(type.Name.IndexOf('`')));
@@ -362,7 +362,7 @@ namespace Tracer.NLog4Net.Adapters
             if (message == null)
                 return stringRepresentationOfNull;
 
-            var str = message as string;
+            string str = message as string;
             if (str != null)
                 return str;
 
@@ -371,13 +371,13 @@ namespace Tracer.NLog4Net.Adapters
 
         private void Log(LogLevel level, object message, Exception exception = null, Dictionary<string, object> properties = null)
         {
-            var eventData = new LogEventInfo();
+            LogEventInfo eventData = new LogEventInfo();
             eventData.Exception = exception;
             eventData.Message = GetRenderedFormat(message);
             eventData.Level = level;
 
             if (properties != null)
-                foreach (var property in properties)
+                foreach (KeyValuePair<string, object> property in properties)
                     eventData.Properties.Add(property.Key, property.Value);
             _logger.Log(eventData);
         }

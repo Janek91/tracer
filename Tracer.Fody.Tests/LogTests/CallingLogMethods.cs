@@ -1,6 +1,6 @@
-﻿using System;
-using FluentAssertions;
+﻿using FluentAssertions;
 using NUnit.Framework;
+using System;
 using Tracer.Fody.Tests.MockLoggers;
 
 namespace Tracer.Fody.Tests.LogTests
@@ -28,7 +28,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogException");
         }
@@ -53,7 +53,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogOuterNoParam");
         }
@@ -78,7 +78,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogOuter", "Hello");
         }
@@ -105,7 +105,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(2);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogOuter", "Hello");
             result.ElementAt(1).ShouldBeLogCall("First.MyClass::Main", "MockLogOuter", "String", "1");
@@ -133,7 +133,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new AllTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(4);
             result.ElementAt(0).ShouldBeTraceEnterInto("First.MyClass::Main");
             result.ElementAt(1).ShouldBeLogCall("First.MyClass::Main", "MockLogOuter", "Hello");
@@ -166,7 +166,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::.ctor()", "MockLogOuterNoParam");
         }
@@ -196,7 +196,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::.cctor()", "MockLogOuterNoParam");
         }
@@ -224,7 +224,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new NoTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new NoTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogOuterNoParam");
             result.ElementAt(0).ContainingMethod.Should().Be("Main()");
@@ -257,7 +257,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new NoTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new NoTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogOuterNoParam");
             result.ElementAt(0).ContainingMethod.Should().Be("Main()");
@@ -283,7 +283,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogProperty("First.MyClass", "IsEnabled");
         }
@@ -308,7 +308,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            Action test = () => this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            Action test = () => RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             test.ShouldThrow<ApplicationException>().And.Message.Contains("not supported");
         }
 
@@ -332,7 +332,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogGenericOuter", "Hello");
         }
@@ -357,7 +357,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogGenericOuter", "4", "Hello", "2");
         }
@@ -382,7 +382,7 @@ namespace Tracer.Fody.Tests.LogTests
                 }
             ";
 
-            var result = this.RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
+            MockLogResult result = RunTest(code, new PrivateOnlyTraceLoggingFilter(), "First.MyClass::Main");
             result.Count.Should().Be(1);
             result.ElementAt(0).ShouldBeLogCall("First.MyClass::Main", "MockLogGenericOuter", "String");
         }

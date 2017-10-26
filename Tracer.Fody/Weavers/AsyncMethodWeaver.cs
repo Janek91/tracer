@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
@@ -23,29 +21,29 @@ namespace Tracer.Fody.Weavers
             MethodDefinition methodDefinition)
             : base(typeReferenceProvider, methodReferenceProvider, loggerProvider, methodDefinition)
         {
-            var asyncAttribute = methodDefinition.CustomAttributes.Single(it => it.AttributeType.FullName.Equals(_typeReferenceProvider.AsyncStateMachineAttribute.FullName));
+            CustomAttribute asyncAttribute = methodDefinition.CustomAttributes.Single(it => it.AttributeType.FullName.Equals(_typeReferenceProvider.AsyncStateMachineAttribute.FullName));
             _generatedType = asyncAttribute.ConstructorArguments[0].Value as TypeDefinition;
             WeavingLog.LogDebug($"Weaving {methodDefinition.FullName}");
         }
 
         protected override void WeaveTraceEnter()
         {
-            var instructions = CreateTraceEnterCallInstructions();
+            List<Instruction> instructions = CreateTraceEnterCallInstructions();
             _body.InsertAtTheBeginning(instructions);
 
             ExtendGeneratedTypeWithTickcountField();
             //pass initial tickcount to generated type
 
             //search the variable for the state machine in the body
-            var genVar = _body.Variables.FirstOrDefault(it => it.VariableType.GetElementType().FullName.Equals(_generatedType.FullName));
+            VariableDefinition genVar = _body.Variables.FirstOrDefault(it => it.VariableType.GetElementType().FullName.Equals(_generatedType.FullName));
             if (genVar == null)
             {
                 //this should not happen
-                throw new ApplicationException($"Cannot find async statemachine for async method {this._methodDefinition.Name}.");
+                throw new ApplicationException($"Cannot find async statemachine for async method {_methodDefinition.Name}.");
             }
 
-            var processor = _body.GetILProcessor();
-            var instrs = new List<Instruction>();
+            ILProcessor processor = _body.GetILProcessor();
+            List<Instruction> instrs = new List<Instruction>();
             Instruction instr;
 
             //search the first ldloc or ldloca that uses this variable and insert our param passing block
@@ -74,18 +72,18 @@ namespace Tracer.Fody.Weavers
             _moveNextBody.SimplifyMacros();
 
             //find the leave part in the generated async state machine
-            var setResultInstr = _moveNextBody.Instructions.FirstOrDefault(IsCallSetResult);
-            var setExceptionInstr = _moveNextBody.Instructions.FirstOrDefault(IsCallSetException);
+            Instruction setResultInstr = _moveNextBody.Instructions.FirstOrDefault(IsCallSetResult);
+            Instruction setExceptionInstr = _moveNextBody.Instructions.FirstOrDefault(IsCallSetException);
 
             VariableDefinition returnValueDef = null;
-            var processor = _moveNextBody.GetILProcessor();
+            ILProcessor processor = _moveNextBody.GetILProcessor();
 
             if (setResultInstr != null) //rarely it might happen that there is not SetResult
             {
                 //if we have return value store it in a local var
                 if (HasReturnValue)
                 {
-                    var retvalDupInstructions = CreateReturnValueSavingInstructions(out returnValueDef);
+                    List<Instruction> retvalDupInstructions = CreateReturnValueSavingInstructions(out returnValueDef);
                     setResultInstr.InsertBefore(processor, retvalDupInstructions);
                 }
 
@@ -99,7 +97,7 @@ namespace Tracer.Fody.Weavers
                 VariableDefinition exceptionValueDef = _moveNextBody.DeclareVariable("$exception",
                     _typeReferenceProvider.Exception);
 
-                var exceptionDupInstructions = new List<Instruction>()
+                List<Instruction> exceptionDupInstructions = new List<Instruction>()
                 {
                     Instruction.Create(OpCodes.Dup),
                     Instruction.Create(OpCodes.Stloc, exceptionValueDef)
@@ -111,7 +109,7 @@ namespace Tracer.Fody.Weavers
 
             //search and replace static log calls in moveNext
             SearchForAndReplaceStaticLogCallsInMoveNext();
-            
+
             _moveNextBody.InitLocals = true;
             _moveNextBody.OptimizeMacros();
         }
@@ -119,9 +117,9 @@ namespace Tracer.Fody.Weavers
         private void SearchForAndReplaceStaticLogCallsInMoveNext()
         {
             //look for static log calls
-            foreach (var instruction in _moveNextBody.Instructions.ToList()) //create a copy of the instructions so we can update the original
+            foreach (Instruction instruction in _moveNextBody.Instructions.ToList()) //create a copy of the instructions so we can update the original
             {
-                var methodReference = instruction.Operand as MethodReference;
+                MethodReference methodReference = instruction.Operand as MethodReference;
                 if (instruction.OpCode == OpCodes.Call && methodReference != null && IsStaticLogTypeOrItsInnerType(methodReference.DeclaringType))
                 {
                     //change the call
@@ -139,19 +137,19 @@ namespace Tracer.Fody.Weavers
 
         private void ChangeStaticLogCallWithParameter(Instruction oldInstruction)
         {
-            var instructions = new List<Instruction>();
-            var methodReference = (MethodReference)oldInstruction.Operand;
-            var methodReferenceInfo = new MethodReferenceInfo(methodReference);
+            List<Instruction> instructions = new List<Instruction>();
+            MethodReference methodReference = (MethodReference)oldInstruction.Operand;
+            MethodReferenceInfo methodReferenceInfo = new MethodReferenceInfo(methodReference);
 
             if (methodReferenceInfo.IsPropertyAccessor() && methodReferenceInfo.IsSetter)
             {
                 throw new ApplicationException("Rewriting static property setters is not supported.");
             }
 
-            var parameters = methodReference.Parameters;
+            Collection<ParameterDefinition> parameters = methodReference.Parameters;
 
             //create variables to store parameters and push values into them
-            var variables = new VariableDefinition[parameters.Count];
+            VariableDefinition[] variables = new VariableDefinition[parameters.Count];
 
             for (int idx = 0; idx < parameters.Count; idx++)
             {
@@ -181,10 +179,10 @@ namespace Tracer.Fody.Weavers
 
         private void ChangeStaticLogCallWithoutParameter(Instruction oldInstruction)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
-            var methodReference = (MethodReference)oldInstruction.Operand;
-            var methodReferenceInfo = new MethodReferenceInfo(methodReference);
+            MethodReference methodReference = (MethodReference)oldInstruction.Operand;
+            MethodReferenceInfo methodReferenceInfo = new MethodReferenceInfo(methodReference);
 
             instructions.Add(Instruction.Create(OpCodes.Ldsfld, TypeWeaver.CreateLoggerStaticField(_typeReferenceProvider, _methodReferenceProvider, _generatedType)));
 
@@ -203,12 +201,12 @@ namespace Tracer.Fody.Weavers
             //Declare local variable for the return value
             returnValueDef = _moveNextBody.DeclareVariable("$returnValue", _typeReferenceProvider.Object);
 
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
             instructions.Add(Instruction.Create(OpCodes.Dup));
             if (ReturnType.IsGenericParameter)
             {
                 //use the generic parameter of the generated state machine
-                var varType = _generatedType.GenericParameters[0];
+                GenericParameter varType = _generatedType.GenericParameters[0];
                 instructions.Add(Instruction.Create(OpCodes.Box, varType));
             }
             else
@@ -225,7 +223,7 @@ namespace Tracer.Fody.Weavers
 
         private List<Instruction> CreateTraceReturnLoggingInstructions(VariableDefinition returnValueDef)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
             VariableDefinition paramNamesDef = null;
             VariableDefinition paramValuesDef = null;
@@ -265,7 +263,7 @@ namespace Tracer.Fody.Weavers
 
         private List<Instruction> CreateTraceReturnWithExceptionLoggingInstructions(VariableDefinition exceptionValue)
         {
-            var instructions = new List<Instruction>();
+            List<Instruction> instructions = new List<Instruction>();
 
             VariableDefinition paramNamesDef = null;
             VariableDefinition paramValuesDef = null;
@@ -327,7 +325,7 @@ namespace Tracer.Fody.Weavers
         private bool IsCallSetResult(Instruction instr)
         {
             if (instr.OpCode != OpCodes.Call) return false;
-            var methodRef = instr.Operand as MethodReference;
+            MethodReference methodRef = instr.Operand as MethodReference;
             if (methodRef == null) return false;
 
             return (methodRef.Name.Equals("SetResult", StringComparison.OrdinalIgnoreCase) &&
@@ -337,7 +335,7 @@ namespace Tracer.Fody.Weavers
         private bool IsCallSetException(Instruction instr)
         {
             if (instr.OpCode != OpCodes.Call) return false;
-            var methodRef = instr.Operand as MethodReference;
+            MethodReference methodRef = instr.Operand as MethodReference;
             if (methodRef == null) return false;
 
             return (methodRef.Name.Equals("SetException", StringComparison.OrdinalIgnoreCase) &&
@@ -349,7 +347,7 @@ namespace Tracer.Fody.Weavers
             get
             {
                 if (base.ReturnType.FullName.Equals(_typeReferenceProvider.Task.FullName)) return _typeReferenceProvider.Void;
-                var type = base.ReturnType as GenericInstanceType;
+                GenericInstanceType type = base.ReturnType as GenericInstanceType;
                 if (type != null && type.GenericArguments.Count == 1)
                 {
                     return type.GenericArguments[0];
@@ -361,12 +359,12 @@ namespace Tracer.Fody.Weavers
 
         protected override void SearchForAndReplaceStaticLogCalls()
         {
-            
+
         }
 
         private void ExtendGeneratedTypeWithTickcountField()
         {
-            var tickField = new FieldDefinition(StartTickVarName, FieldAttributes.Public, _typeReferenceProvider.Long);
+            FieldDefinition tickField = new FieldDefinition(StartTickVarName, FieldAttributes.Public, _typeReferenceProvider.Long);
             _generatedType.Fields.Add(tickField);
             _tickFieldRef = tickField;
         }

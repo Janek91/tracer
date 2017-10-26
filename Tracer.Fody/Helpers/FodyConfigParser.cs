@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Tracer.Fody.Filters;
 using Tracer.Fody.Weavers;
@@ -29,7 +25,7 @@ namespace Tracer.Fody.Helpers
 
         public static FodyConfigParser Parse(XElement element)
         {
-            var result = new FodyConfigParser();
+            FodyConfigParser result = new FodyConfigParser();
             result.DoParse(element);
             return result;
         }
@@ -38,7 +34,7 @@ namespace Tracer.Fody.Helpers
         {
             get
             {
-                var result = TraceLoggingConfiguration.New
+                TraceLoggingConfiguration.TraceLoggingConfigurationBuilder result = TraceLoggingConfiguration.New
                     .WithAdapterAssembly(_adapterAssembly)
                     .WithFilter(new DefaultFilter(_filterConfigElements))
                     .WithLogger(_logger)
@@ -46,7 +42,7 @@ namespace Tracer.Fody.Helpers
                     .WithStaticLogger(_staticLogger);
 
                 if (_traceConstructorsFlag) { result.WithConstructorTraceOn(); }
-                    else { result.WithConstructorTraceOff(); }
+                else { result.WithConstructorTraceOff(); }
 
                 if (_tracePropertiesFlag) { result.WithPropertiesTraceOn(); }
                 else { result.WithPropertiesTraceOff(); }
@@ -57,7 +53,7 @@ namespace Tracer.Fody.Helpers
 
         public bool IsErroneous
         {
-            get { return !String.IsNullOrEmpty(_error); }
+            get { return !string.IsNullOrEmpty(_error); }
         }
 
         public string Error
@@ -74,8 +70,8 @@ namespace Tracer.Fody.Helpers
                 _logManager = GetAttributeValue(element, "logManager", true);
                 _logger = GetAttributeValue(element, "logger", true);
                 _staticLogger = GetAttributeValue(element, "staticLogger", false);
-                _traceConstructorsFlag = Boolean.Parse(GetAttributeValueOrDefault(element, "traceConstructors", Boolean.FalseString));
-                _tracePropertiesFlag = Boolean.Parse(GetAttributeValueOrDefault(element, "traceProperties", Boolean.TrueString));
+                _traceConstructorsFlag = bool.Parse(GetAttributeValueOrDefault(element, "traceConstructors", bool.FalseString));
+                _tracePropertiesFlag = bool.Parse(GetAttributeValueOrDefault(element, "traceProperties", bool.TrueString));
                 _filterConfigElements = element.Descendants();
             }
             catch (Exception ex)
@@ -86,10 +82,10 @@ namespace Tracer.Fody.Helpers
 
         private string GetAttributeValue(XElement element, string attributeName, bool isMandatory)
         {
-            var attribute = element.Attribute(attributeName);
-            if (isMandatory && (attribute == null || String.IsNullOrWhiteSpace(attribute.Value)))
+            XAttribute attribute = element.Attribute(attributeName);
+            if (isMandatory && (attribute == null || string.IsNullOrWhiteSpace(attribute.Value)))
             {
-                throw new ApplicationException(String.Format("Tracer: attribute {0} is missing or empty.", attributeName));
+                throw new ApplicationException(string.Format("Tracer: attribute {0} is missing or empty.", attributeName));
             }
 
             return attribute != null ? attribute.Value : null;
@@ -97,7 +93,7 @@ namespace Tracer.Fody.Helpers
 
         private string GetAttributeValueOrDefault(XElement element, string attributeName, string defaultValue)
         {
-            var attribute = element.Attribute(attributeName);
+            XAttribute attribute = element.Attribute(attributeName);
             return attribute != null ? attribute.Value : defaultValue;
         }
     }

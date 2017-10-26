@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Mono.Cecil;
-using Mono.Collections.Generic;
-using Tracer.Fody.Helpers;
 
 namespace Tracer.Fody.Weavers
 {
@@ -24,7 +19,7 @@ namespace Tracer.Fody.Weavers
 
         public MethodReference GetTraceEnterReference()
         {
-            var logTraceEnterMethod = new MethodReference("TraceEnter", _moduleDefinition.TypeSystem.Void, _typeReferenceProvider.LogAdapterReference);
+            MethodReference logTraceEnterMethod = new MethodReference("TraceEnter", _moduleDefinition.TypeSystem.Void, _typeReferenceProvider.LogAdapterReference);
             logTraceEnterMethod.HasThis = true; //instance method
             logTraceEnterMethod.Parameters.Add(new ParameterDefinition(_moduleDefinition.TypeSystem.String));
             logTraceEnterMethod.Parameters.Add(new ParameterDefinition(_typeReferenceProvider.StringArray));
@@ -34,7 +29,7 @@ namespace Tracer.Fody.Weavers
 
         public MethodReference GetTraceLeaveReference()
         {
-            var logTraceLeaveMethod = new MethodReference("TraceLeave", _moduleDefinition.TypeSystem.Void, _typeReferenceProvider.LogAdapterReference);
+            MethodReference logTraceLeaveMethod = new MethodReference("TraceLeave", _moduleDefinition.TypeSystem.Void, _typeReferenceProvider.LogAdapterReference);
             logTraceLeaveMethod.HasThis = true; //instance method
             logTraceLeaveMethod.Parameters.Add(new ParameterDefinition(_moduleDefinition.TypeSystem.String));
             logTraceLeaveMethod.Parameters.Add(new ParameterDefinition(_moduleDefinition.TypeSystem.Int64));
@@ -58,7 +53,7 @@ namespace Tracer.Fody.Weavers
         {
             parameters = parameters ?? new ParameterDefinition[0];
 
-            var logMethod = new MethodReference(GetInstanceLogMethodName(methodReferenceInfo), methodReferenceInfo.ReturnType, _typeReferenceProvider.LogAdapterReference);
+            MethodReference logMethod = new MethodReference(GetInstanceLogMethodName(methodReferenceInfo), methodReferenceInfo.ReturnType, _typeReferenceProvider.LogAdapterReference);
             logMethod.HasThis = true; //instance method
 
             //check if accessor
@@ -67,7 +62,7 @@ namespace Tracer.Fody.Weavers
                 logMethod.Parameters.Add(new ParameterDefinition(_moduleDefinition.TypeSystem.String));
             }
 
-            foreach (var parameter in parameters)
+            foreach (ParameterDefinition parameter in parameters)
             {
                 logMethod.Parameters.Add(parameter);
             }
@@ -75,16 +70,16 @@ namespace Tracer.Fody.Weavers
             //handle generics
             if (methodReferenceInfo.IsGeneric)
             {
-                foreach (var genericParameter in methodReferenceInfo.GenericParameters)
+                foreach (GenericParameter genericParameter in methodReferenceInfo.GenericParameters)
                 {
-                    var gp = new GenericParameter(genericParameter.Name, logMethod);
+                    GenericParameter gp = new GenericParameter(genericParameter.Name, logMethod);
                     gp.Name = genericParameter.Name;
                     logMethod.GenericParameters.Add(gp);
                 }
                 logMethod.CallingConvention = MethodCallingConvention.Generic;
 
                 logMethod = new GenericInstanceMethod(logMethod);
-                foreach (var genericArgument in methodReferenceInfo.GenericArguments)
+                foreach (TypeReference genericArgument in methodReferenceInfo.GenericArguments)
                 {
                     ((GenericInstanceMethod)logMethod).GenericArguments.Add(genericArgument);
                 }
@@ -96,7 +91,7 @@ namespace Tracer.Fody.Weavers
         private string GetInstanceLogMethodName(MethodReferenceInfo methodReferenceInfo)
         {
             //TODO chain inner types in name
-            var typeName = methodReferenceInfo.DeclaringType.Name;
+            string typeName = methodReferenceInfo.DeclaringType.Name;
 
             if (methodReferenceInfo.IsPropertyAccessor())
             {
